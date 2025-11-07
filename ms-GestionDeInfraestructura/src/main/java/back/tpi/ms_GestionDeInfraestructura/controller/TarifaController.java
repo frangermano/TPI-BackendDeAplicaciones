@@ -1,7 +1,7 @@
-package back.tpi.ms_GestionDeCostosYTarifas.controller;
+package back.tpi.ms_GestionDeInfraestructura.controller;
 
-import back.tpi.ms_GestionDeCostosYTarifas.domain.Tarifa;
-import back.tpi.ms_GestionDeCostosYTarifas.service.TarifaService;
+import back.tpi.ms_GestionDeInfraestructura.domain.Tarifa;
+import back.tpi.ms_GestionDeInfraestructura.service.TarifaService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -52,5 +52,3 @@ public class TarifaController {
 
      */
 }
-
-

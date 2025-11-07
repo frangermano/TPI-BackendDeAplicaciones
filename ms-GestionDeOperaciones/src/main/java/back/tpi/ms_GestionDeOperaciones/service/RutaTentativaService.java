@@ -5,7 +5,6 @@ import back.tpi.ms_GestionDeOperaciones.dto.DistanciaResponse;
 import back.tpi.ms_GestionDeOperaciones.domain.Ruta;
 import back.tpi.ms_GestionDeOperaciones.domain.SolicitudTraslado;
 import back.tpi.ms_GestionDeOperaciones.domain.Tramo;
-import back.tpi.ms_GestionDeOperaciones.dto.SolicitudTrasladoDTO;
 import back.tpi.ms_GestionDeOperaciones.repository.RutaRepository;
 import back.tpi.ms_GestionDeOperaciones.repository.SolicitudTrasladoRepository;
 import lombok.RequiredArgsConstructor;
@@ -29,8 +28,12 @@ public class RutaTentativaService {
      * y calcula para cada una sus tramos con distancia, duración y costo estimado.
      * No asigna ninguna ruta — el usuario elige manualmente cuál usar.
      */
-    public List<Ruta> consultarRutasTentativas(SolicitudTraslado solicitud) {
-        List<Ruta> rutasTentativas = rutaRepository.findBySolicitudTrasladoId(solicitud.getId());
+    public List<Ruta> consultarRutasTentativas(Long solicitudId) {
+        // Cargar la solicitud para obtener datos necesarios (p.ej. tarifaId)
+        SolicitudTraslado solicitud = solicitudRepository.findById(solicitudId)
+                .orElseThrow(() -> new RuntimeException("Solicitud no encontrada"));
+
+        List<Ruta> rutasTentativas = rutaRepository.findBySolicitudTrasladoId(solicitudId);
 
         for (Ruta ruta : rutasTentativas) {
             double distanciaTotal = 0;
@@ -44,12 +47,28 @@ public class RutaTentativaService {
                         tramo.getCoordDestinoLng()
                 );
 
-
                 distanciaTotal += respuesta.getDistanciaKm();
                 duracionTotal += respuesta.getTiempoHoras();
+
+                // Si la entidad Tramo posee campos para distancia/tiempo, sería buena idea setearlos acá.
+                // Ej: tramo.setDistanciaKm(respuesta.getDistanciaKm());
+                // Ej: tramo.setTiempoHoras(respuesta.getTiempoHoras());
             }
 
+            // Calcular costo estimado usando la tarifa de la solicitud
             double costoEstimado = tarifaClient.calcularCostoEstimado(solicitud.getTarifaId(), distanciaTotal);
+
+            // No modificar la entidad SolicitudTraslado aquí: las rutas tentativas son sólo propuestas.
+            // La solicitud NO debe ser mutada hasta que el usuario confirme y se llame a asignarRutaASolicitud.
+            // Si quieres que el resultado incluya resúmenes, setéalos en la entidad Ruta (si existen setters)
+            // o construye y retorna DTOs (recomendado). Ejemplos comentados:
+            // Ej: ruta.setDistanciaTotal(distanciaTotal);
+            // Ej: ruta.setTiempoEstimado(duracionTotal);
+            // Ej: ruta.setCostoEstimado(costoEstimado);
+
+            // Logueamos los valores calculados para depuración sin mutar la solicitud
+            log.debug("Ruta tentative id={} distanciaTotal={} km tiempoTotal={} h costoEstimado={}",
+                    ruta.getId(), distanciaTotal, duracionTotal, costoEstimado);
         }
 
         return rutasTentativas;

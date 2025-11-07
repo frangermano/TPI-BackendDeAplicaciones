@@ -27,11 +27,11 @@ public class Tramo {
     String destino;
 
     @Column(nullable = false, length = 50)
-    String tipoTramo; // TRANSPORTE, DEPOSITO, etc.
+    String tipoTramo; // TRANSPORTE, DEPOSITO
 
     @Column(nullable = false, length = 50)
     @Enumerated(EnumType.STRING)
-    EstadoTramo estado; // PENDIENTE, EN_CURSO, COMPLETADO, CANCELADO
+    EstadoTramo estado;
 
     @Column(nullable = false)
     Double costoAproximado;
@@ -41,15 +41,15 @@ public class Tramo {
     LocalDateTime fechaHoraInicio;
     LocalDateTime fechaHoraFin;
 
-    // Referencia al camión (ID en ms-GestionDeFlota)
-    Long camionId;
+    @Column(length = 20)
+    String camionPatente; // Patente del camión (ej: "ABC123", "AB123CD")
 
-    // Relación con Ruta (muchos tramos pertenecen a una ruta)
+
     @ManyToOne
     @JoinColumn(name = "ruta_id", nullable = false)
     Ruta ruta;
 
-    // Coordenadas opcionales para tracking
+    // Coordenadas opcionales
     Double coordOrigenLat;
     Double coordOrigenLng;
     Double coordDestinoLat;

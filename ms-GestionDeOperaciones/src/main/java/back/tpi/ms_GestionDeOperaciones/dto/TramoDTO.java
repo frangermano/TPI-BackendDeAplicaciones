@@ -26,7 +26,7 @@ public class TramoDTO {
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     private LocalDateTime fechaHoraFin;
 
-    private Long camionId;
+    private String camionPatente;
 
     // Coordenadas opcionales
     private Double coordOrigenLat;

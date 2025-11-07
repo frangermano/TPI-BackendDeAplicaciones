@@ -1,9 +1,9 @@
-package back.tpi.ms_GestionDeCostosYTarifas.repository;
+package back.tpi.ms_GestionDeInfraestructura.repository;
 
-import back.tpi.ms_GestionDeCostosYTarifas.domain.Tarifa;
-import org.springframework.data.jpa.repository.JpaRepository;
+
+import back.tpi.ms_GestionDeInfraestructura.domain.Tarifa;
 import org.springframework.stereotype.Repository;
-
+import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.Date;
 import java.util.List;

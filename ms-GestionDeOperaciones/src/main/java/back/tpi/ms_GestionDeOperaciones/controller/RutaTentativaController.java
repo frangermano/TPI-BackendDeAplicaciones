@@ -3,7 +3,6 @@ package back.tpi.ms_GestionDeOperaciones.controller;
 import back.tpi.ms_GestionDeOperaciones.domain.Ruta;
 import back.tpi.ms_GestionDeOperaciones.domain.SolicitudTraslado;
 import back.tpi.ms_GestionDeOperaciones.dto.*;
-import back.tpi.ms_GestionDeOperaciones.service.RutaService;
 import back.tpi.ms_GestionDeOperaciones.service.RutaTentativaService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -18,7 +17,6 @@ import java.util.List;
 public class RutaTentativaController {
 
     private final RutaTentativaService rutaTentativaService;
-    private final RutaService rutaService;
 
     /**
      * Consulta rutas tentativas para una solicitud
@@ -31,11 +29,10 @@ public class RutaTentativaController {
      * - Ventajas y desventajas
      */
     @GetMapping("/solicitud/{solicitudId}")
-    public ResponseEntity<ConsultaRutasResponseDTO> consultarRutasTentativas(
-            @RequestBody SolicitudTraslado solicitudId) {
+    public ResponseEntity<List<Ruta>> consultarRutasTentativas(@PathVariable Long solicitudId) {
         try {
             List<Ruta> response = rutaTentativaService.consultarRutasTentativas(solicitudId);
-            return ResponseEntity.ok((ConsultaRutasResponseDTO) response);
+            return ResponseEntity.ok(response);
         } catch (RuntimeException e) {
             return ResponseEntity.notFound().build();
         }
@@ -48,21 +45,19 @@ public class RutaTentativaController {
      * Convierte la ruta tentativa elegida en una ruta real asignada
      */
     @PostMapping("/confirmar")
-    public ResponseEntity<RutaDTO> confirmarRutaTentativa(
+    public ResponseEntity<SolicitudTraslado> confirmarRutaTentativa(
             @RequestBody ConfirmarRutaTentativaDTO confirmarDTO) {
         try {
-            // Convertir ruta tentativa a AsignarRutaDTO
-            SolicitudTraslado asignarRutaDTO = rutaTentativaService.asignarRutaASolicitud(
+            // Asignar la ruta seleccionada a la solicitud
+            SolicitudTraslado solicitudAsignada = rutaTentativaService.asignarRutaASolicitud(
                     confirmarDTO.getSolicitudTrasladoId(),
                     Long.valueOf(confirmarDTO.getNumeroOpcionSeleccionada())
             );
 
-            // Asignar la ruta real
-            RutaDTO rutaAsignada = rutaService.asignarRutaConTramos(asignarRutaDTO);
-
-            return ResponseEntity.status(HttpStatus.CREATED).body(rutaAsignada);
+            return ResponseEntity.status(HttpStatus.CREATED).body(solicitudAsignada);
         } catch (RuntimeException e) {
             return ResponseEntity.badRequest().build();
         }
     }
 }
+

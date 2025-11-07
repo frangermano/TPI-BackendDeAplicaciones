@@ -1,32 +1,36 @@
 package back.tpi.ms_GestionDeOperaciones.client;
 
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
-import org.springframework.web.client.RestClient;
-import org.springframework.web.client.RestClientResponseException;
+import back.tpi.ms_GestionDeOperaciones.dto.CamionDTO;
+import org.springframework.cloud.openfeign.FeignClient;
+import org.springframework.web.bind.annotation.*;
 
-@Configuration
-public class CamionClient {
+import java.util.List;
 
-    @Bean
-    RestClient restClient(@Value("${api.base-url}") String baseUrl) {
-        return RestClient.builder()
-                .baseUrl(baseUrl)
-                .build();
-    }
+/**
+ * Cliente Feign para comunicarse con el microservicio de Gestión de Transporte
+ */
+@FeignClient(name = "ms-GestionDeTransporte", url = "${microservices.transporte.url:http://localhost:8082}")
+public interface CamionClient {
 
-    /*
-    try {
-        var response = restClient.get()
-                .uri("/api/proveedores/99")
-                .retrieve()
-                .body(ProveedorDTO.class);
-    } catch (
-    RestClientResponseException ex) {
-        System.err.println("Error: " + ex.getStatusCode());
-        System.err.println("Respuesta: " + ex.getResponseBodyAsString());
-    }
-
+    /**
+     * Obtiene un camión por su patente
      */
+    @GetMapping("/api/camiones/{patente}")
+    CamionDTO obtenerCamionPorPatente(@PathVariable String patente);
+
+    /**
+     * Obtiene todos los camiones disponibles
+     */
+    @GetMapping("/api/camiones/disponibles")
+    List<CamionDTO> obtenerCamionesDisponibles();
+
+    /**
+     * Marca un camión como no disponible (asignado)
+     */
+    @PatchMapping("/api/camiones/{patente}/disponibilidad")
+    CamionDTO actualizarDisponibilidad(
+            @PathVariable String patente,
+            @RequestParam Boolean disponible);
 }
+
+

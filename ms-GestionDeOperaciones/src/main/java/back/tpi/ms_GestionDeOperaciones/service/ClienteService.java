@@ -25,7 +25,7 @@ public class ClienteService {
     @Transactional
     public Cliente obtenerORegistrarCliente(ClienteDTO clienteDTO) {
         // Buscar por email
-        Optional<Cliente> clienteExistente = repository.findById(clienteDTO.getId());
+        Optional<Cliente> clienteExistente = repository.findByEmail(clienteDTO.getEmail());
 
         if (clienteExistente.isPresent()) {
             log.info("Cliente encontrado con email: {}", clienteDTO.getEmail());

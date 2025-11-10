@@ -12,6 +12,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Optional;
 
 @RequiredArgsConstructor
 @Slf4j
@@ -23,6 +24,8 @@ public class RutaTentativaService {
     private final SolicitudTrasladoRepository solicitudRepository;
     private final TarifaClient tarifaClient;
 
+
+    // REQUERIMIENTO 3
     /**
      * Consulta las rutas tentativas asociadas a una solicitud de traslado,
      * y calcula para cada una sus tramos con distancia, duración y costo estimado.
@@ -33,7 +36,8 @@ public class RutaTentativaService {
         SolicitudTraslado solicitud = solicitudRepository.findById(solicitudId)
                 .orElseThrow(() -> new RuntimeException("Solicitud no encontrada"));
 
-        List<Ruta> rutasTentativas = rutaRepository.findBySolicitudTrasladoId(solicitudId);
+        List<Ruta> rutasTentativas = rutaRepository
+                .findAllBySolicitudTrasladoId(solicitudId);
 
         for (Ruta ruta : rutasTentativas) {
             double distanciaTotal = 0;
@@ -74,6 +78,7 @@ public class RutaTentativaService {
         return rutasTentativas;
     }
 
+    // REQUERIMIENTO 4
     /**
      * Asigna manualmente una ruta seleccionada por el usuario a la solicitud de traslado.
      * La ruta y la solicitud deben existir previamente.

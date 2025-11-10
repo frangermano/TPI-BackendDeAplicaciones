@@ -19,8 +19,8 @@ public class SolicitudTraslado {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     Long id;
 
-    @Column(unique = true, nullable = false)
-    Integer numero;
+    //@Column(unique = true, nullable = false)
+    //Integer numero;
 
     // ====== REFERENCIA A CLIENTE (LOCAL - MISMO MICROSERVICIO) ======
     @ManyToOne
@@ -28,7 +28,8 @@ public class SolicitudTraslado {
     Cliente cliente;  // ✅ Relación JPA normal
 
 
-    @Column(nullable = false)
+    @OneToOne
+    @JoinColumn(nullable = false)
     Contenedor contenedor;
 
     // ====== IDs DE REFERENCIA A OTROS MICROSERVICIOS ======

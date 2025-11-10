@@ -28,14 +28,14 @@ public class Tarifa {
     String patenteCamion;
 
     @Column(nullable = false)
-    double valor_combustible_litro;
+    double valorCombustibleLitro;
 
     @Column(nullable = false)
-    double cargo_gestion_trama;
+    double cargoGestionTrama;
 
     @Column(nullable = false)
     @Temporal(TemporalType.DATE)
-    Date fecha_vigencia;
+    Date fechaVigencia;
 
     // IDs de referencia a otros microservicios
     @Column(name = "id_tipo_camion")

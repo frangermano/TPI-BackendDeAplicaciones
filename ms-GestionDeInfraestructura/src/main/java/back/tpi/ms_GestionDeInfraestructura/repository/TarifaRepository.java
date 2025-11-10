@@ -14,7 +14,7 @@ public interface TarifaRepository extends JpaRepository<Tarifa, Long> {
 
     Optional<Tarifa> findByNombre(String nombre);
 
-    List<Tarifa> findByFechaVigenciaAfter(Date fecha);
+    List<Tarifa> findByFechaVigencia(Date fecha);
 
     List<Tarifa> findByIdTipoCamion(Long idTipoCamion);
 

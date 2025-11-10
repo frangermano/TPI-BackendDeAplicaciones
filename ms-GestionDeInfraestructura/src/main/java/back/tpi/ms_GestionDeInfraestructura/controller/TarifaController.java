@@ -1,8 +1,10 @@
 package back.tpi.ms_GestionDeInfraestructura.controller;
 
 import back.tpi.ms_GestionDeInfraestructura.domain.Tarifa;
+import back.tpi.ms_GestionDeInfraestructura.dto.TarifaDTO;
 import back.tpi.ms_GestionDeInfraestructura.service.TarifaService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -13,6 +15,15 @@ public class TarifaController {
 
     private final TarifaService service;
 
+    @PostMapping
+    public ResponseEntity<Tarifa> crearSolicitudCompleta(@RequestBody TarifaDTO tarifaDTO) {
+        try {
+            Tarifa nuevaTarifa = service.crearTarifa(tarifaDTO);
+            return ResponseEntity.status(HttpStatus.CREATED).body(nuevaTarifa);
+        } catch (RuntimeException e) {
+            return ResponseEntity.badRequest().build();
+        }
+    }
     @GetMapping("/{id}/existe")
     public ResponseEntity<Boolean> existeTarifa(@PathVariable Long id) {
         return ResponseEntity.ok(service.existeTarifa(id));

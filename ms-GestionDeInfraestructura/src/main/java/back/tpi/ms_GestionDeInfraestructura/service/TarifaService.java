@@ -1,9 +1,9 @@
 package back.tpi.ms_GestionDeInfraestructura.service;
 
-
-
 import back.tpi.ms_GestionDeInfraestructura.domain.Tarifa;
+import back.tpi.ms_GestionDeInfraestructura.dto.TarifaDTO;
 import back.tpi.ms_GestionDeInfraestructura.repository.TarifaRepository;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -20,11 +20,30 @@ public class TarifaService {
 
     private final TarifaRepository repository;
 
-
+    /**
+     * Crea una nueva tarifa a partir de un DTO
+     * Convierte el DTO a entidad y la guarda
+     */
     @Transactional
-    public Tarifa crearTarifa(Tarifa tarifa) {
-        log.info("Creando nueva tarifa: {}", tarifa.getNombre());
-        return repository.save(tarifa);
+    public Tarifa crearTarifa(TarifaDTO tarifaDTO) {
+        log.info("Creando nueva tarifa: {}", tarifaDTO.getNombre());
+
+        // Convertir DTO a entidad
+        Tarifa tarifa = Tarifa.builder()
+                .nombre(tarifaDTO.getNombre())
+                .patenteCamion(tarifaDTO.getPatenteCamion())
+                .valorCombustibleLitro(tarifaDTO.getValorCombustibleLitro())
+                .cargoGestionTrama(tarifaDTO.getCargoGestionTrama())
+                .fechaVigencia(tarifaDTO.getFechaVigencia() != null ?
+                        tarifaDTO.getFechaVigencia() : new Date())
+                .idTipoCamion(tarifaDTO.getIdTipoCamion())
+                .idDeposito(tarifaDTO.getIdDeposito())
+                .build();
+
+        Tarifa tarifaGuardada = repository.save(tarifa);
+        log.info("Tarifa creada exitosamente con ID: {}", tarifaGuardada.getId());
+
+        return tarifaGuardada;
     }
 
     @Transactional(readOnly = true)
@@ -49,7 +68,7 @@ public class TarifaService {
 
     @Transactional(readOnly = true)
     public List<Tarifa> obtenerTarifasVigentes() {
-        return repository.findByFechaVigenciaAfter(new Date());
+        return repository.findByFechaVigencia(new Date());
     }
 
     @Transactional(readOnly = true)
@@ -64,7 +83,7 @@ public class TarifaService {
 
     /**
      * Calcula el costo total del traslado basado en la tarifa y la distancia
-     * Fórmula: (distancia * valor_combustible_por_km) + cargo_gestion
+     * Fórmula: (distancia * consumo_por_km * valor_combustible_litro) + cargo_gestion
      */
     @Transactional(readOnly = true)
     public Double calcularCosto(Long tarifaId, Double distanciaKm) {
@@ -73,8 +92,8 @@ public class TarifaService {
 
         // Asumimos que el camión consume aproximadamente 0.3 litros por km
         double consumoPorKm = 0.3;
-        double costoCombustible = distanciaKm * consumoPorKm * tarifa.getValor_combustible_litro();
-        double costoTotal = costoCombustible + tarifa.getCargo_gestion_trama();
+        double costoCombustible = distanciaKm * consumoPorKm * tarifa.getValorCombustibleLitro();
+        double costoTotal = costoCombustible + tarifa.getCargoGestionTrama();
 
         log.info("Calculando costo para tarifa {}: distancia={}km, costo={}",
                 tarifaId, distanciaKm, costoTotal);
@@ -91,14 +110,14 @@ public class TarifaService {
         if (tarifaActualizada.getNombre() != null) {
             tarifa.setNombre(tarifaActualizada.getNombre());
         }
-        if (tarifaActualizada.getValor_combustible_litro() != 0) {
-            tarifa.setValor_combustible_litro(tarifaActualizada.getValor_combustible_litro());
+        if (tarifaActualizada.getValorCombustibleLitro() != 0) {
+            tarifa.setValorCombustibleLitro(tarifaActualizada.getValorCombustibleLitro());
         }
-        if (tarifaActualizada.getCargo_gestion_trama() != 0) {
-            tarifa.setCargo_gestion_trama(tarifaActualizada.getCargo_gestion_trama());
+        if (tarifaActualizada.getCargoGestionTrama() != 0) {
+            tarifa.setCargoGestionTrama(tarifaActualizada.getCargoGestionTrama());
         }
-        if (tarifaActualizada.getFecha_vigencia() != null) {
-            tarifa.setFecha_vigencia(tarifaActualizada.getFecha_vigencia());
+        if (tarifaActualizada.getFechaVigencia() != null) {
+            tarifa.setFechaVigencia(tarifaActualizada.getFechaVigencia());
         }
 
         return repository.save(tarifa);
@@ -112,5 +131,3 @@ public class TarifaService {
         repository.deleteById(id);
     }
 }
-
-

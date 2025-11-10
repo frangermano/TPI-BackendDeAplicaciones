@@ -17,4 +17,9 @@ public class TarifaDTO {
     private Date fechaVigencia;
     private Long idTipoCamion;
     private Long idDeposito;
+    // Campos adicionales para cálculo de costos
+    private double costoPorHoraEstadia; // Costo por hora en depósito
+    private double factorPeso;          // Factor multiplicador por kg
+    private double factorVolumen;       // Factor multiplicador por m³
 }
+

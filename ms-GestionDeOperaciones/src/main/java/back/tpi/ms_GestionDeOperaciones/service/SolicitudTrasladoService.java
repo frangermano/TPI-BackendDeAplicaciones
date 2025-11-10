@@ -12,8 +12,10 @@ import back.tpi.ms_GestionDeOperaciones.dto.TarifaDTO;
 import back.tpi.ms_GestionDeOperaciones.repository.SolicitudTrasladoRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -55,6 +57,7 @@ public class SolicitudTrasladoService {
         TarifaDTO tarifaCreada = tarifaClient.crearTarifa(solicitudDTO.getTarifa());
         log.info("Tarifa creada con ID: {} en ms-GestionDeCostosYTarifas", tarifaCreada.getId());
 
+        /*
         // CALCULAR DISTANCIA Y COSTOS
         DistanciaResponse resp = distanciaService.calcularDistancia(solicitudDTO.getCoordOrigenLat(),
                 solicitudDTO.getCoordOrigenLng(),
@@ -63,13 +66,14 @@ public class SolicitudTrasladoService {
         double distancia = resp.getDistanciaKm();
         double tiempoEstimado = resp.getTiempoHoras();
 
+         */
+
 
         // El costo puede depender de distancia, peso y volumen
-        Double costoEstimado = tarifaClient.calcularCostoEstimado(tarifaCreada.getId(), distancia);
+        //Double costoEstimado = tarifaClient.calcularCostoEstimado(tarifaCreada.getId(), distancia);
 
         // c) CREAR SOLICITUD DE TRASLADO CON ESTADO PENDIENTE
         SolicitudTraslado solicitud = SolicitudTraslado.builder()
-                .numero(generarNumeroSolicitud())
                 .cliente(cliente)
                 .contenedor(contenedor)
                 .tarifaId(tarifaCreada.getId())
@@ -80,15 +84,14 @@ public class SolicitudTrasladoService {
                 .coordDestinoLat(solicitudDTO.getCoordDestinoLat())
                 .coordDestinoLng(solicitudDTO.getCoordDestinoLng())
                 .estado(EstadoSolicitud.PENDIENTE) // c) Estado inicial
-                .costoEstimado(costoEstimado)
-                .tiempoEstimado(tiempoEstimado)
+                //.costoEstimado(costoEstimado)
+                //.tiempoEstimado(tiempoEstimado)
                 .fechaSolicitud(LocalDateTime.now())
                 .build();
 
         SolicitudTraslado solicitudGuardada = repository.save(solicitud);
-        log.info("Solicitud de traslado creada exitosamente con ID: {}, número: {} y estado: {}",
+        log.info("Solicitud de traslado creada exitosamente con ID: {} y estado: {}",
                 solicitudGuardada.getId(),
-                solicitudGuardada.getNumero(),
                 solicitudGuardada.getEstado());
 
         return solicitudGuardada;
@@ -101,82 +104,121 @@ public class SolicitudTrasladoService {
      */
     @Transactional(readOnly = true)
     public EstadoTransporteDTO consultarEstadoPorSolicitud(Long solicitudId) {
-        SolicitudTraslado solicitud = obtenerPorId(solicitudId);
+        log.info("Consultando estado para solicitud ID: {}", solicitudId);
+
+        SolicitudTraslado solicitud = repository.findById(solicitudId)
+                .orElseThrow(() -> {
+                    log.error("Solicitud no encontrada con ID: {}", solicitudId);
+                    return new ResponseStatusException(
+                            HttpStatus.NOT_FOUND,
+                            "Solicitud no encontrada con id: " + solicitudId
+                    );
+                });
+
+        log.info("Solicitud encontrada: ID={}, Estado={}", solicitud.getId(), solicitud.getEstado());
+
+        // Validar que tenga cliente y contenedor
+        if (solicitud.getCliente() == null) {
+            log.error("La solicitud {} no tiene cliente asociado", solicitudId);
+            throw new ResponseStatusException(
+                    HttpStatus.INTERNAL_SERVER_ERROR,
+                    "Datos incompletos: solicitud sin cliente"
+            );
+        }
+
+        if (solicitud.getContenedor() == null) {
+            log.error("La solicitud {} no tiene contenedor asociado", solicitudId);
+            throw new ResponseStatusException(
+                    HttpStatus.INTERNAL_SERVER_ERROR,
+                    "Datos incompletos: solicitud sin contenedor"
+            );
+        }
+
         return construirEstadoTransporteDTO(solicitud);
     }
 
-    /**
-     * Consulta el estado del transporte por número de solicitud
-     */
-    @Transactional(readOnly = true)
-    public EstadoTransporteDTO consultarEstadoPorNumero(Integer numeroSolicitud) {
-        SolicitudTraslado solicitud = obtenerPorNumero(numeroSolicitud);
-        return construirEstadoTransporteDTO(solicitud);
-    }
 
-    /**
-     * Consulta el estado del transporte por ID de contenedor
-     */
     @Transactional(readOnly = true)
     public EstadoTransporteDTO consultarEstadoPorContenedor(Long contenedorId) {
+        log.info("Consultando estado para contenedor ID: {}", contenedorId);
         List<SolicitudTraslado> solicitudes = repository.findByContenedorId(contenedorId);
 
         if (solicitudes.isEmpty()) {
-            throw new RuntimeException("No se encontró solicitud para el contenedor con ID: " + contenedorId);
+            throw new ResponseStatusException(
+                    HttpStatus.NOT_FOUND,
+                    "No se encontró solicitud para el contenedor con ID: " + contenedorId
+            );
         }
 
-        // Retorna la solicitud más reciente
         SolicitudTraslado solicitudMasReciente = solicitudes.stream()
                 .max((s1, s2) -> s1.getFechaSolicitud().compareTo(s2.getFechaSolicitud()))
                 .orElseThrow();
+
+        if (solicitudMasReciente.getCliente() == null || solicitudMasReciente.getContenedor() == null) {
+            throw new ResponseStatusException(
+                    HttpStatus.INTERNAL_SERVER_ERROR,
+                    "Datos incompletos en la solicitud"
+            );
+        }
 
         return construirEstadoTransporteDTO(solicitudMasReciente);
     }
 
     /**
-     * Construye el DTO con toda la información del estado del transporte
+     * Construye el DTO con información del estado del transporte
+     * Solo incluye campos que NUNCA son null o tienen valores por defecto seguros
      */
     private EstadoTransporteDTO construirEstadoTransporteDTO(SolicitudTraslado solicitud) {
+        log.debug("Construyendo EstadoTransporteDTO para solicitud ID: {}", solicitud.getId());
+
+        Cliente cliente = solicitud.getCliente();
+        Contenedor contenedor = solicitud.getContenedor();
+
         return EstadoTransporteDTO.builder()
+                // IDs y datos básicos (SIEMPRE presentes)
                 .solicitudId(solicitud.getId())
-                .numeroSolicitud(solicitud.getNumero())
-                .contenedorId(solicitud.getContenedor().getId())
                 .estado(solicitud.getEstado())
-                .clienteNombre(solicitud.getCliente().getNombre())
-                .clienteEmail(solicitud.getCliente().getEmail())
-                .contenedorPeso(solicitud.getContenedor().getPeso())
-                .contenedorVolumen(solicitud.getContenedor().getVolumen())
+
+                // Cliente (validado previamente)
+                .clienteNombre(cliente.getNombre())
+                .clienteEmail(cliente.getEmail())
+
+                // Contenedor (validado previamente)
+                .contenedorId(contenedor.getId())
+                .contenedorPeso(contenedor.getPeso())
+                .contenedorVolumen(contenedor.getVolumen())
+
+                // Direcciones (SIEMPRE presentes por nullable=false)
                 .direccionOrigen(solicitud.getDireccionOrigen())
                 .direccionDestino(solicitud.getDireccionDestino())
+
+                // Fecha de solicitud (SIEMPRE presente)
                 .fechaSolicitud(solicitud.getFechaSolicitud())
-                .fechaInicio(solicitud.getFechaInicio())
-                .fechaFinalizacion(solicitud.getFechaFinalizacion())
-                .tiempoEstimado(solicitud.getTiempoEstimado())
-                .tiempoReal(solicitud.getTiempoReal())
-                .costoEstimado(solicitud.getCostoEstimado())
-                .costoFinal(solicitud.getCostoFinal())
+
+                // Fechas opcionales (pueden ser null)
+                //.fechaInicio(solicitud.getFechaInicio())
+                //.fechaFinalizacion(solicitud.getFechaFinalizacion())
+
+                // Tiempos y costos opcionales (pueden ser null)
+                //.tiempoEstimado(solicitud.getTiempoEstimado())
+               // .tiempoReal(solicitud.getTiempoReal())
+                //.costoEstimado(solicitud.getCostoEstimado())
+                //.costoFinal(solicitud.getCostoFinal())
+
+                // Mensaje descriptivo
                 .mensajeEstado(generarMensajeEstado(solicitud))
                 .build();
     }
 
-    /**
-     * Genera un mensaje descriptivo según el estado actual
-     */
     private String generarMensajeEstado(SolicitudTraslado solicitud) {
-        switch (solicitud.getEstado()) {
-            case PENDIENTE:
-                return "Su solicitud está pendiente de aprobación.";
-            case APROBADA:
-                return "Su solicitud ha sido aprobada y está lista para iniciar el transporte.";
-            case EN_PROCESO:
-                return "Su contenedor está siendo transportado actualmente.";
-            case COMPLETADA:
-                return "El transporte ha sido completado exitosamente.";
-            case CANCELADA:
-                return "La solicitud de transporte ha sido cancelada.";
-            default:
-                return "Estado desconocido.";
-        }
+        return switch (solicitud.getEstado()) {
+            case PENDIENTE -> "Su solicitud está pendiente de aprobación.";
+            case APROBADA -> "Su solicitud ha sido aprobada y está lista para iniciar el transporte.";
+            case EN_PROCESO -> "Su contenedor está siendo transportado actualmente.";
+            case COMPLETADA -> "El transporte ha sido completado exitosamente.";
+            case CANCELADA -> "La solicitud de transporte ha sido cancelada.";
+            default -> "Estado desconocido.";
+        };
     }
 
 
@@ -192,11 +234,6 @@ public class SolicitudTrasladoService {
                 .orElseThrow(() -> new RuntimeException("Solicitud no encontrada con ID: " + id));
     }
 
-    @Transactional(readOnly = true)
-    public SolicitudTraslado obtenerPorNumero(Integer numero) {
-        return repository.findByNumero(numero)
-                .orElseThrow(() -> new RuntimeException("Solicitud no encontrada con número: " + numero));
-    }
 
     @Transactional(readOnly = true)
     public List<SolicitudTraslado> obtenerPorEstado(EstadoSolicitud estado) {
@@ -243,16 +280,6 @@ public class SolicitudTrasladoService {
 
     // ========== MÉTODOS AUXILIARES ==========
 
-    /**
-     * Genera un número único para la solicitud
-     */
-    private Integer generarNumeroSolicitud() {
-        return repository.findAll().stream()
-                .map(SolicitudTraslado::getNumero)
-                .max(Integer::compareTo)
-                .map(n -> n + 1)
-                .orElse(1000);
-    }
 
     /**
      * Calcula distancia entre coordenadas (fórmula de Haversine)

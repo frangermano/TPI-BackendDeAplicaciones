@@ -17,13 +17,13 @@ public class TipoCamion {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     Long id;
 
-    @Column(nullable = false)
+    @Column(nullable = false, unique = true)
     String nombre;
 
-    @Column(nullable = false)
-    double capacidad_volumen;
+    @Column(nullable = false, name = "capacidad_volumen")
+    Double capacidadVolumen;
 
-    @Column(nullable = false)
-    double capacidad_peso;
+    @Column(nullable = false, name = "capacidad_peso")
+    Double capacidadPeso;
 
 }

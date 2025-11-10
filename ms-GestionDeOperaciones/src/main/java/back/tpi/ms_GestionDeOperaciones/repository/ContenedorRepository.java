@@ -11,7 +11,7 @@ import java.util.List;
 public interface ContenedorRepository extends JpaRepository<Contenedor, Long> {
 
     // Buscar contenedores por cliente
-    List<Contenedor> findByCliente(Cliente cliente);
+    //List<Contenedor> findByCliente(Cliente cliente);
 
     // Buscar contenedores por ID de cliente
     List<Contenedor> findByClienteId(Long clienteId);

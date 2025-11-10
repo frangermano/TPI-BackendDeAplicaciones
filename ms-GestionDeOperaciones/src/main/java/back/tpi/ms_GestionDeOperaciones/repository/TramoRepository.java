@@ -17,7 +17,7 @@ public interface TramoRepository extends JpaRepository<Tramo, Long> {
     List<Tramo> findByEstado(EstadoTramo estado);
 
     // Buscar tramos por camión
-    List<Tramo> findByCamionId(Long camionId);
+    List<Tramo> findByCamionPatente(String camionPatente);
 
     // Buscar tramos de una ruta por estado
     List<Tramo> findByRutaIdAndEstado(Long rutaId, EstadoTramo estado);

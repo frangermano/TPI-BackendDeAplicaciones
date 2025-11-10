@@ -15,7 +15,7 @@ public class TarifaClient {
 
     private final RestClient restClient;
 
-    @Value("${microservices.gestion-tarifas.url:http://localhost:8081}")
+    @Value("${microservices.gestion-tarifas.url:http://ms-gestiondeinfraestructura:8082}")
     private String tarifasServiceUrl;
 
     /**

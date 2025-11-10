@@ -1,55 +1,50 @@
 package back.tpi.ms_GestionDeOperaciones.dto;
 
 import back.tpi.ms_GestionDeOperaciones.domain.EstadoSolicitud;
-import com.fasterxml.jackson.annotation.JsonFormat;
-import lombok.*;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
 
 @Data
+@Builder
 @NoArgsConstructor
 @AllArgsConstructor
-@Builder
 public class EstadoTransporteDTO {
 
-    // Identificadores
+    // ===== CAMPOS OBLIGATORIOS (NUNCA NULL) =====
     private Long solicitudId;
-    private Integer numeroSolicitud;
-    private Long contenedorId;
-
-    // Estado actual
     private EstadoSolicitud estado;
+    private String mensajeEstado;
 
-    // Información del cliente
+    // Cliente
     private String clienteNombre;
     private String clienteEmail;
 
-    // Información del contenedor
+    // Contenedor
+    private Long contenedorId;
     private Double contenedorPeso;
     private Double contenedorVolumen;
 
-    // Rutas
+    // Direcciones
     private String direccionOrigen;
     private String direccionDestino;
 
-    // Tiempos
-    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
+    // Fecha de solicitud (siempre presente)
     private LocalDateTime fechaSolicitud;
 
-    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
-    private LocalDateTime fechaInicio;
+    // ===== CAMPOS OPCIONALES (PUEDEN SER NULL) =====
+    // Fechas de proceso
+    //private LocalDateTime fechaInicio;
+    //private LocalDateTime fechaFinalizacion;
 
-    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
-    private LocalDateTime fechaFinalizacion;
-
-    private Double tiempoEstimado;
-    private Double tiempoReal;
+    // Tiempos
+   // private Double tiempoEstimado;
+   // private Double tiempoReal;
 
     // Costos
-    private Double costoEstimado;
-    private Double costoFinal;
-
-    // Información adicional útil
-    private String mensajeEstado;
-    private Double progreso; // Porcentaje estimado de progreso (0-100)
+   // private Double costoEstimado;
+   // private Double costoFinal;
 }

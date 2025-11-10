@@ -14,9 +14,6 @@ import java.util.Optional;
 @Repository
 public interface SolicitudTrasladoRepository extends JpaRepository<SolicitudTraslado, Long> {
 
-    // Buscar por número de solicitud
-    Optional<SolicitudTraslado> findByNumero(Integer numero);
-
     // Buscar por cliente
     List<SolicitudTraslado> findByClienteId(Long clienteId);
 

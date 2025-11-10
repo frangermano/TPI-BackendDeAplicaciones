@@ -21,11 +21,12 @@ public class Transportista {
     String nombre;
 
     @Column(nullable = false)
-    int telefono;
+    String telefono;
 
-    @Column(nullable = false)
+    @Column(nullable = false, unique = true)
     String email;
 
-    @Column
-    boolean disponible;
+    @Column(columnDefinition = "BOOLEAN DEFAULT TRUE")
+    Boolean disponible = true;
+
 }

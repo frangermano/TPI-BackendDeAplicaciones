@@ -1,36 +1,52 @@
 package back.tpi.ms_GestionDeOperaciones.client;
 
 import back.tpi.ms_GestionDeOperaciones.dto.CamionDTO;
-import org.springframework.cloud.openfeign.FeignClient;
-import org.springframework.web.bind.annotation.*;
+import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.ParameterizedTypeReference;
+import org.springframework.stereotype.Service;
+import org.springframework.web.client.RestClient;
 
 import java.util.List;
 
-/**
- * Cliente Feign para comunicarse con el microservicio de Gestión de Transporte
- */
-@FeignClient(name = "ms-GestionDeTransporte", url = "${microservices.transporte.url:http://localhost:8082}")
-public interface CamionClient {
+@Service
+@RequiredArgsConstructor
+public class CamionClient {
+
+    private final RestClient restClient;
+
+    @Value("${microservices.gestion-transportes.url:http://ms-gestiondetransporte:8084}")
+    private String camionServiceUrl;
+
 
     /**
      * Obtiene un camión por su patente
      */
-    @GetMapping("/api/camiones/{patente}")
-    CamionDTO obtenerCamionPorPatente(@PathVariable String patente);
+    public CamionDTO obtenerCamionPorPatente(String patente) {
+        return restClient.get()
+                .uri(camionServiceUrl + "/api/camiones/{patente}", patente)
+                .retrieve()
+                .body(CamionDTO.class);
+    }
 
     /**
      * Obtiene todos los camiones disponibles
      */
-    @GetMapping("/api/camiones/disponibles")
-    List<CamionDTO> obtenerCamionesDisponibles();
+    public List<CamionDTO> obtenerCamionesDisponibles() {
+        return restClient.get()
+                .uri("/disponibles")
+                .retrieve()
+                .body(new ParameterizedTypeReference<List<CamionDTO>>() {});
+    }
 
     /**
      * Marca un camión como no disponible (asignado)
      */
-    @PatchMapping("/api/camiones/{patente}/disponibilidad")
-    CamionDTO actualizarDisponibilidad(
-            @PathVariable String patente,
-            @RequestParam Boolean disponible);
+    public CamionDTO actualizarDisponibilidad(String patente, Boolean disponible) {
+        return restClient.patch()
+                .uri("/{patente}/disponibilidad?disponible={disponible}", patente, disponible)
+                .retrieve()
+                .body(CamionDTO.class);
+    }
 }
-
 

@@ -62,37 +62,7 @@ public class RegistroTramoController {
         }
     }
 
-    /**
-     * Obtiene todos los tramos pendientes de un transportista
-     *
-     * GET /api/registro-tramos/transportista/{transportistaId}/pendientes
-     */
-    @GetMapping("/transportista/{transportistaId}/pendientes")
-    public ResponseEntity<List<TramoDTO>> obtenerTramosPendientes(
-            @PathVariable Long transportistaId) {
-        try {
-            List<TramoDTO> tramos = service.obtenerTramosPendientesTransportista(transportistaId);
-            return ResponseEntity.ok(tramos);
-        } catch (RuntimeException e) {
-            return ResponseEntity.badRequest().build();
-        }
-    }
 
-    /**
-     * Obtiene todos los tramos en curso de un transportista
-     *
-     * GET /api/registro-tramos/transportista/{transportistaId}/en-curso
-     */
-    @GetMapping("/transportista/{transportistaId}/en-curso")
-    public ResponseEntity<List<TramoDTO>> obtenerTramosEnCurso(
-            @PathVariable Long transportistaId) {
-        try {
-            List<TramoDTO> tramos = service.obtenerTramosEnCursoTransportista(transportistaId);
-            return ResponseEntity.ok(tramos);
-        } catch (RuntimeException e) {
-            return ResponseEntity.badRequest().build();
-        }
-    }
 
     // DTO para respuestas de error
     @lombok.Data

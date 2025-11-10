@@ -67,7 +67,7 @@ public class AsignacionCamionService {
         }
 
         // 5. Asignar camión al tramo
-        tramo.setCamionPatente(camion.getPatente().replaceAll("[^0-9]", ""));
+        tramo.setCamionPatente(camion.getPatente());
         // Nota: Si la patente es alfanumérica, considera cambiar el tipo de camionId a String
         // o almacenar la patente completa en un nuevo campo String
 

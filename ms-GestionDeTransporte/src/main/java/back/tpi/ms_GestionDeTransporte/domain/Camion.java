@@ -1,9 +1,6 @@
 package back.tpi.ms_GestionDeTransporte.domain;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.Id;
-import jakarta.persistence.Table;
+import jakarta.persistence.*;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
 
@@ -20,17 +17,19 @@ public class Camion {
     String patente;
 
     @Column(nullable = false)
-    double costo_combustible;
+    Double costoCombustible;
 
     @Column(nullable = false)
-    double costo_km;
+    Double costoKm;
 
     @Column
-    boolean disponible;
+    Boolean disponible = true;
 
-    @Column(nullable = false)
-    Transportista id_transportista;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "id_transportista", nullable = false)
+    Transportista transportista;
 
-    @Column(nullable = false)
-    TipoCamion id_tipo_camion;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "id_tipo_camion", nullable = false)
+    TipoCamion tipoCamion;
 }

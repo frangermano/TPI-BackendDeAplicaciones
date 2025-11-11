@@ -68,4 +68,14 @@ public class ClienteController {
             return ResponseEntity.notFound().build();
         }
     }
+
+    public ClienteDTO convertirADTO(Cliente cliente) {
+        return ClienteDTO.builder()
+                .id(cliente.getId())
+                .nombre(cliente.getNombre())
+                .apellido(cliente.getApellido())
+                .email(cliente.getEmail())
+                .build();
+
+    }
 }

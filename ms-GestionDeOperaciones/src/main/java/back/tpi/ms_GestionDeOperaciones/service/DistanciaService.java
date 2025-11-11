@@ -9,8 +9,9 @@ import java.util.List;
 @Service
 public class DistanciaService {
 
-    private final RestClient osrmClient;
+   // private final RestClient osrmClient;
 
+    /*
     // Inyectá el bean que ya tienen configurado
     public DistanciaService(RestClient osrmClient) {
         this.osrmClient = osrmClient;
@@ -19,6 +20,7 @@ public class DistanciaService {
     /**
      * Calcula distancia (km) y tiempo (horas) entre dos puntos usando OSRM (perfil driving).
      */
+    /*
     public DistanciaResponse calcularDistancia(double origenLat, double origenLon, double destinoLat, double destinoLon) {
         // OSRM: /route/v1/driving/{lon1},{lat1};{lon2},{lat2}
         String coords = String.format("%f,%f;%f,%f", origenLon, origenLat, destinoLon, destinoLat);
@@ -56,4 +58,6 @@ public class DistanciaService {
         public double distance; // meters
         public double duration; // seconds
     }
+
+     */
 }

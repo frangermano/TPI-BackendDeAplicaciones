@@ -1,5 +1,6 @@
 package back.tpi.ms_GestionDeOperaciones.service;
 
+import back.tpi.ms_GestionDeOperaciones.client.OsrmClient;
 import back.tpi.ms_GestionDeOperaciones.client.TarifaClient;
 import back.tpi.ms_GestionDeOperaciones.domain.Cliente;
 import back.tpi.ms_GestionDeOperaciones.domain.Contenedor;
@@ -29,7 +30,7 @@ public class SolicitudTrasladoService {
     private final ClienteService clienteService;
     private final ContenedorService contenedorService;
     private final TarifaClient tarifaClient;
-    private final DistanciaService distanciaService;
+    private final OsrmClient osrmClient;
 
 
     // REQUERIMIENTO 1
@@ -57,20 +58,22 @@ public class SolicitudTrasladoService {
         TarifaDTO tarifaCreada = tarifaClient.crearTarifa(solicitudDTO.getTarifa());
         log.info("Tarifa creada con ID: {} en ms-GestionDeCostosYTarifas", tarifaCreada.getId());
 
-        /*
+
         // CALCULAR DISTANCIA Y COSTOS
-        DistanciaResponse resp = distanciaService.calcularDistancia(solicitudDTO.getCoordOrigenLat(),
+        DistanciaResponse resp = osrmClient.calcularDistancia(solicitudDTO.getCoordOrigenLat(),
                 solicitudDTO.getCoordOrigenLng(),
                 solicitudDTO.getCoordDestinoLat(), solicitudDTO.getCoordDestinoLng());
 
         double distancia = resp.getDistanciaKm();
+        String distanciaLegible = resp.getDistanciaLegible();
         double tiempoEstimado = resp.getTiempoHoras();
+        String tiempoEstimadoLegible = resp.getTiempoLegible();
+        log.info("Distancia: {}", distancia);
 
-         */
 
 
         // El costo puede depender de distancia, peso y volumen
-        //Double costoEstimado = tarifaClient.calcularCostoEstimado(tarifaCreada.getId(), distancia);
+        Double costoEstimado = tarifaClient.calcularCostoEstimado(tarifaCreada.getId(), distancia);
 
         // c) CREAR SOLICITUD DE TRASLADO CON ESTADO PENDIENTE
         SolicitudTraslado solicitud = SolicitudTraslado.builder()
@@ -84,8 +87,8 @@ public class SolicitudTrasladoService {
                 .coordDestinoLat(solicitudDTO.getCoordDestinoLat())
                 .coordDestinoLng(solicitudDTO.getCoordDestinoLng())
                 .estado(EstadoSolicitud.PENDIENTE) // c) Estado inicial
-                //.costoEstimado(costoEstimado)
-                //.tiempoEstimado(tiempoEstimado)
+                .costoEstimado(costoEstimado)
+                .tiempoEstimado(tiempoEstimadoLegible)
                 .fechaSolicitud(LocalDateTime.now())
                 .build();
 
@@ -260,7 +263,7 @@ public class SolicitudTrasladoService {
     }
 
     @Transactional
-    public SolicitudTraslado finalizarSolicitud(Long id, Double costoFinal, Double tiempoReal) {
+    public SolicitudTraslado finalizarSolicitud(Long id, Double costoFinal, String tiempoReal) {
         SolicitudTraslado solicitud = obtenerPorId(id);
         solicitud.setEstado(EstadoSolicitud.COMPLETADA);
         solicitud.setCostoFinal(costoFinal);

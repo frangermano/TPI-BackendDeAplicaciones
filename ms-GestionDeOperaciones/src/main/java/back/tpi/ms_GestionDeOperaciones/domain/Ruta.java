@@ -1,5 +1,6 @@
 package back.tpi.ms_GestionDeOperaciones.domain;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import jakarta.persistence.*;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
@@ -30,6 +31,7 @@ public class Ruta {
     // Relación con SolicitudTraslado (una ruta pertenece a una solicitud)
     @OneToOne
     @JoinColumn(name = "solicitud_traslado_id", nullable = false)
+    @JsonBackReference
     SolicitudTraslado solicitudTraslado;
 
     // Relación con Tramos (una ruta tiene múltiples tramos)

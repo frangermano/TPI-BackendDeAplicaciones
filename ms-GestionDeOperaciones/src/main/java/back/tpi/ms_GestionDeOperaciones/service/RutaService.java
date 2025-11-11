@@ -120,54 +120,6 @@ public class RutaService {
                 .collect(Collectors.toList());
     }
 
-    /**
-     * Actualiza el estado de un tramo
-     */
-    @Transactional
-    public TramoDTO actualizarEstadoTramo(Long tramoId, EstadoTramo nuevoEstado) {
-        Tramo tramo = tramoRepository.findById(tramoId)
-                .orElseThrow(() -> new RuntimeException("Tramo no encontrado con ID: " + tramoId));
-
-        tramo.setEstado(nuevoEstado);
-
-        // Actualizar fechas según el estado
-        switch (nuevoEstado) {
-            case EN_CURSO:
-                if (tramo.getFechaHoraInicio() == null) {
-                    tramo.setFechaHoraInicio(java.time.LocalDateTime.now());
-                }
-                break;
-            case COMPLETADO:
-            case CANCELADO:
-                if (tramo.getFechaHoraFin() == null) {
-                    tramo.setFechaHoraFin(java.time.LocalDateTime.now());
-                }
-                break;
-        }
-
-        Tramo tramoActualizado = tramoRepository.save(tramo);
-        log.info("Tramo ID: {} actualizado a estado: {}", tramoId, nuevoEstado);
-
-        return convertirATramoDTO(tramoActualizado);
-    }
-
-    /**
-     * Finaliza un tramo con costo real
-     */
-    @Transactional
-    public TramoDTO finalizarTramo(Long tramoId, Double costoReal) {
-        Tramo tramo = tramoRepository.findById(tramoId)
-                .orElseThrow(() -> new RuntimeException("Tramo no encontrado con ID: " + tramoId));
-
-        tramo.setEstado(EstadoTramo.COMPLETADO);
-        tramo.setCostoReal(costoReal);
-        tramo.setFechaHoraFin(java.time.LocalDateTime.now());
-
-        Tramo tramoFinalizado = tramoRepository.save(tramo);
-        log.info("Tramo ID: {} finalizado con costo real: {}", tramoId, costoReal);
-
-        return convertirATramoDTO(tramoFinalizado);
-    }
 
     /**
      * Elimina una ruta y todos sus tramos

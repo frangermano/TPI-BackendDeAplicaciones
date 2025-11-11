@@ -1,5 +1,6 @@
 package back.tpi.ms_GestionDeOperaciones.service;
 
+import back.tpi.ms_GestionDeOperaciones.client.OsrmClient;
 import back.tpi.ms_GestionDeOperaciones.client.TarifaClient;
 import back.tpi.ms_GestionDeOperaciones.domain.*;
 import back.tpi.ms_GestionDeOperaciones.dto.CostoDetalleDTO;
@@ -21,8 +22,8 @@ public class CalculoCostoService {
 
     private final TarifaClient tarifaClient;
     private final SolicitudTrasladoRepository solicitudRepository;
-    private final DistanciaService distanciaService;
-
+    private final OsrmClient osrmClient;
+/*
     // Constantes para el cálculo
     private static final double CONSUMO_COMBUSTIBLE_POR_KM = 0.35; // litros por km (ajustar según tipo de camión)
 
@@ -84,9 +85,10 @@ public class CalculoCostoService {
                 .build();
     }
 
-    /**
+    /*
      * Calcula la distancia total de la ruta (origen → depósitos → destino)
      */
+    /*
     private DistanciaResponse calcularDistanciaTotal(SolicitudTraslado solicitud) {
         Ruta ruta = solicitud.getRuta();
 
@@ -107,12 +109,14 @@ public class CalculoCostoService {
                 .sum();
 
          */
+    /*
         return null;
     }
 
     /**
      * Calcula las horas totales de estadía en depósitos
      */
+    /*
     private double calcularHorasEstadia(Ruta ruta) {
         if (ruta == null || ruta.getTramos() == null) {
             return 0.0;
@@ -129,6 +133,7 @@ public class CalculoCostoService {
     /**
      * Calcula las horas entre llegada y salida de un tramo
      */
+    /*
     private double calcularHorasTramo(Tramo tramo) {
         LocalDateTime llegada = tramo.getFechaHoraFin();
         LocalDateTime salida = tramo.getFechaHoraInicio();
@@ -140,6 +145,7 @@ public class CalculoCostoService {
     /**
      * Calcula el costo de combustible
      */
+    /*
     private double calcularCostoCombustible(double distanciaKm, TarifaDTO tarifa) {
         double litrosConsumidos = distanciaKm * CONSUMO_COMBUSTIBLE_POR_KM;
         return litrosConsumidos * tarifa.getValorCombustibleLitro();
@@ -148,6 +154,7 @@ public class CalculoCostoService {
     /**
      * Calcula el costo de estadía en depósitos
      */
+    /*
     private double calcularCostoEstadia(double horas, TarifaDTO tarifa) {
         return horas * tarifa.getCostoPorHoraEstadia();
     }
@@ -155,6 +162,7 @@ public class CalculoCostoService {
     /**
      * Calcula el costo por peso del contenedor
      */
+    /*
     private double calcularCostoPeso(Contenedor contenedor, TarifaDTO tarifa) {
         /*
         if (contenedor.getPeso() == null) {
@@ -162,12 +170,14 @@ public class CalculoCostoService {
         }
 
          */
+    /*
         return contenedor.getPeso() * tarifa.getFactorPeso();
     }
 
     /**
      * Calcula el costo por volumen del contenedor
      */
+    /*
     private double calcularCostoVolumen(Contenedor contenedor, TarifaDTO tarifa) {
         /*
         if (contenedor.getVolumen() == null) {
@@ -175,6 +185,9 @@ public class CalculoCostoService {
         }
 
          */
+    /*
         return contenedor.getVolumen() * tarifa.getFactorVolumen();
     }
+
+     */
 }

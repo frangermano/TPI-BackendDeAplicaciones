@@ -1,10 +1,9 @@
 package back.tpi.ms_GestionDeOperaciones.controller;
 
+import back.tpi.ms_GestionDeOperaciones.client.TarifaClient;
 import back.tpi.ms_GestionDeOperaciones.domain.EstadoSolicitud;
 import back.tpi.ms_GestionDeOperaciones.domain.SolicitudTraslado;
-import back.tpi.ms_GestionDeOperaciones.dto.CostoDetalleDTO;
-import back.tpi.ms_GestionDeOperaciones.dto.EstadoTransporteDTO;
-import back.tpi.ms_GestionDeOperaciones.dto.SolicitudTrasladoDTO;
+import back.tpi.ms_GestionDeOperaciones.dto.*;
 import back.tpi.ms_GestionDeOperaciones.service.CalculoCostoService;
 import back.tpi.ms_GestionDeOperaciones.service.SolicitudTrasladoService;
 import lombok.RequiredArgsConstructor;
@@ -21,6 +20,10 @@ public class SolicitudTrasladoController {
 
     private final SolicitudTrasladoService service;
     private final CalculoCostoService calculoCostoService;
+    private final ClienteController clienteController;
+    private final TarifaClient tarifaClient;
+    private final ContenedorController contenedorController;
+    private final RutaController rutaController;
 
     /**
      * Crea una solicitud COMPLETA:
@@ -74,9 +77,10 @@ public class SolicitudTrasladoController {
     /**
      * Calcula el costo total de una solicitud de traslado
      *
-     * @param id ID de la solicitud de traslado
+     * @param // id ID de la solicitud de traslado
      * @return Detalle completo del cálculo de costos
      */
+    /*
     @PostMapping("/{id}/calcular-costo")
     public ResponseEntity<CostoDetalleDTO> calcularCosto(@PathVariable Long id) {
         CostoDetalleDTO costoDetalle = calculoCostoService.calcularYActualizarCosto(id);
@@ -89,21 +93,30 @@ public class SolicitudTrasladoController {
      * @param id ID de la solicitud de traslado
      * @return Detalle del costo
      */
+    /*
     @GetMapping("/{id}/detalle-costo")
     public ResponseEntity<CostoDetalleDTO> obtenerDetalleCosto(@PathVariable Long id) {
         CostoDetalleDTO costoDetalle = calculoCostoService.calcularYActualizarCosto(id);
         return ResponseEntity.ok(costoDetalle);
     }
 
+     */
+
     @GetMapping
-    public ResponseEntity<List<SolicitudTraslado>> obtenerTodas() {
-        return ResponseEntity.ok(service.obtenerTodas());
+    public ResponseEntity<List<SolicitudTrasladoDTO>> obtenerTodas() {
+        List<SolicitudTraslado> solicitudes = service.obtenerTodas();
+        List<SolicitudTrasladoDTO> solicitudesDTO = solicitudes.stream()
+                .map(this::convertirADTO)
+                .toList();
+
+        return ResponseEntity.ok(solicitudesDTO);
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<SolicitudTraslado> obtenerPorId(@PathVariable Long id) {
+    public ResponseEntity<SolicitudTrasladoDTO> obtenerPorId(@PathVariable Long id) {
         try {
-            return ResponseEntity.ok(service.obtenerPorId(id));
+            SolicitudTrasladoDTO  solicitud = convertirADTO(service.obtenerPorId(id));
+            return ResponseEntity.ok(solicitud);
         } catch (RuntimeException e) {
             return ResponseEntity.notFound().build();
         }
@@ -130,7 +143,7 @@ public class SolicitudTrasladoController {
     public ResponseEntity<SolicitudTraslado> finalizarSolicitud(
             @PathVariable Long id,
             @RequestParam Double costoFinal,
-            @RequestParam Double tiempoReal) {
+            @RequestParam String tiempoReal) {
         try {
             return ResponseEntity.ok(service.finalizarSolicitud(id, costoFinal, tiempoReal));
         } catch (RuntimeException e) {
@@ -146,5 +159,22 @@ public class SolicitudTrasladoController {
         } catch (RuntimeException e) {
             return ResponseEntity.notFound().build();
         }
+    }
+
+    public SolicitudTrasladoDTO convertirADTO(SolicitudTraslado  solicitudTraslado) {
+        return SolicitudTrasladoDTO.builder()
+                .id(solicitudTraslado.getId())
+                .cliente(clienteController.convertirADTO(solicitudTraslado.getCliente()))
+                .contenedor(contenedorController.convertirADTO(solicitudTraslado.getContenedor()))
+                .tarifa(tarifaClient.getTarifa(solicitudTraslado.getTarifaId()))
+                .direccionOrigen(solicitudTraslado.getDireccionOrigen())
+                .coordOrigenLat(solicitudTraslado.getCoordOrigenLat())
+                .coordOrigenLng(solicitudTraslado.getCoordOrigenLng())
+                .direccionDestino(solicitudTraslado.getDireccionDestino())
+                .coordDestinoLat(solicitudTraslado.getCoordDestinoLat())
+                .coordDestinoLng(solicitudTraslado.getCoordDestinoLng())
+                .ruta(rutaController.convertirADTO(solicitudTraslado.getRuta()))
+                .build();
+
     }
 }

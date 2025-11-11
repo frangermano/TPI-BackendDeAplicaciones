@@ -25,7 +25,7 @@ public class TramoTentativoDTO {
     // Estimaciones para este tramo
     private Double distancia; // en km
     private Double costoEstimado;
-    private Double tiempoEstimado; // en horas
+    private String tiempoEstimado; // en horas
 
     // Camión sugerido (opcional)
     private Long camionSugeridoId;

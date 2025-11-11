@@ -117,7 +117,7 @@ public class ContenedorPendienteService {
         // Calcular fecha estimada
         LocalDateTime fechaEstimada = solicitud.getFechaInicio() != null &&
                 solicitud.getTiempoEstimado() != null ?
-                solicitud.getFechaInicio().plusHours(solicitud.getTiempoEstimado().longValue()) :
+                solicitud.getFechaInicio().plusHours(Long.parseLong(solicitud.getTiempoEstimado())) :
                 null;
 
         return ContenedorPendienteDTO.builder()
@@ -232,7 +232,7 @@ public class ContenedorPendienteService {
         }
 
         LocalDateTime fechaEstimada = solicitud.getFechaInicio()
-                .plusHours(solicitud.getTiempoEstimado().longValue());
+                .plusHours(Long.parseLong(solicitud.getTiempoEstimado()));
 
         return LocalDateTime.now().isAfter(fechaEstimada);
     }

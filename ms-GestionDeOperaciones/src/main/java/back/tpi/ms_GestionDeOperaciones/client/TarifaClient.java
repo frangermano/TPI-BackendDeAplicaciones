@@ -74,7 +74,7 @@ public class TarifaClient {
     public Double calcularCostoEstimado(Long tarifaId, double distancia) {
         try {
             return restClient.get()
-                    .uri(tarifasServiceUrl + "/api/tarifas/{id}/calcular-costo?distancia={distancia}",
+                    .uri(tarifasServiceUrl + "/api/tarifas/{id}/calcular-costo-estimado?distancia={distancia}",
                             tarifaId, distancia)
                     .retrieve()
                     .body(Double.class);

@@ -1,16 +1,21 @@
 package back.tpi.ms_GestionDeOperaciones.controller;
 
 import back.tpi.ms_GestionDeOperaciones.domain.EstadoTramo;
+import back.tpi.ms_GestionDeOperaciones.domain.Ruta;
+import back.tpi.ms_GestionDeOperaciones.domain.Tramo;
 import back.tpi.ms_GestionDeOperaciones.dto.AsignarRutaDTO;
 import back.tpi.ms_GestionDeOperaciones.dto.RutaDTO;
 import back.tpi.ms_GestionDeOperaciones.dto.TramoDTO;
 import back.tpi.ms_GestionDeOperaciones.service.RutaService;
+import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.LocalDateTime;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/rutas")
@@ -61,37 +66,6 @@ public class RutaController {
         }
     }
 
-    /**
-     * Actualiza el estado de un tramo
-     * PATCH /api/rutas/tramos/{tramoId}/estado
-     */
-    @PatchMapping("/tramos/{tramoId}/estado")
-    public ResponseEntity<TramoDTO> actualizarEstadoTramo(
-            @PathVariable Long tramoId,
-            @RequestParam EstadoTramo nuevoEstado) {
-        try {
-            TramoDTO tramoActualizado = rutaService.actualizarEstadoTramo(tramoId, nuevoEstado);
-            return ResponseEntity.ok(tramoActualizado);
-        } catch (RuntimeException e) {
-            return ResponseEntity.notFound().build();
-        }
-    }
-
-    /**
-     * Finaliza un tramo con su costo real
-     * PATCH /api/rutas/tramos/{tramoId}/finalizar
-     */
-    @PatchMapping("/tramos/{tramoId}/finalizar")
-    public ResponseEntity<TramoDTO> finalizarTramo(
-            @PathVariable Long tramoId,
-            @RequestParam Double costoReal) {
-        try {
-            TramoDTO tramoFinalizado = rutaService.finalizarTramo(tramoId, costoReal);
-            return ResponseEntity.ok(tramoFinalizado);
-        } catch (RuntimeException e) {
-            return ResponseEntity.notFound().build();
-        }
-    }
 
     /**
      * Elimina una ruta y todos sus tramos
@@ -106,4 +80,38 @@ public class RutaController {
             return ResponseEntity.notFound().build();
         }
     }
+
+    public RutaDTO convertirADTO(Ruta ruta) {
+        return RutaDTO.builder()
+                .id(ruta.getId())
+                .solicitudTrasladoId(ruta.getSolicitudTraslado().getId())
+                .cantidadTramos(ruta.getCantidadTramos())
+                .cantidadDepositos(ruta.getCantidadDepositos())
+                .tramos(
+                        ruta.getTramos().stream()
+                                .map(this::convertirTramoADTO)
+                                .collect(Collectors.toList())
+                )
+                .build();
+    }
+
+    public TramoDTO convertirTramoADTO(Tramo tramo) {
+        return TramoDTO.builder()
+                .id(tramo.getId())
+                .origen(tramo.getOrigen())
+                .destino(tramo.getDestino())
+                .tipoTramo(tramo.getTipoTramo())
+                .estado(tramo.getEstado())
+                .costoAproximado(tramo.getCostoAproximado())
+                .costoReal(tramo.getCostoReal())
+                .fechaHoraInicio(tramo.getFechaHoraInicio())
+                .fechaHoraFin(tramo.getFechaHoraFin())
+                .camionPatente(tramo.getCamionPatente())
+                .coordOrigenLat(tramo.getCoordOrigenLat())
+                .coordOrigenLng(tramo.getCoordOrigenLng())
+                .coordDestinoLat(tramo.getCoordDestinoLat())
+                .coordDestinoLng(tramo.getCoordDestinoLng())
+                .build();
+    }
+
 }

@@ -28,4 +28,6 @@ public class SolicitudTrasladoDTO {
     private String direccionDestino;
     private Double coordDestinoLat;
     private Double coordDestinoLng;
+
+    private RutaDTO ruta;
 }

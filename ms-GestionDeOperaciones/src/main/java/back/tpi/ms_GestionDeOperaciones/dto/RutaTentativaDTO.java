@@ -27,7 +27,7 @@ public class RutaTentativaDTO {
 
     // Estimaciones
     private Double costoEstimadoTotal;
-    private Double tiempoEstimadoTotal; // en horas
+    private String tiempoEstimadoTotal; // en horas
 
     // Información adicional
     private String tipoRuta; // DIRECTA, ECONOMICA, RAPIDA, BALANCEADA

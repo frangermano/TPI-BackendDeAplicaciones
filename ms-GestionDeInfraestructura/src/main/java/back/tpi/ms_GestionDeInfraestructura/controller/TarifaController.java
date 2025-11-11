@@ -16,10 +16,13 @@ public class TarifaController {
     private final TarifaService service;
 
     @PostMapping
-    public ResponseEntity<Tarifa> crearSolicitudCompleta(@RequestBody TarifaDTO tarifaDTO) {
+    public ResponseEntity<TarifaDTO> crearSolicitudCompleta(@RequestBody TarifaDTO tarifaDTO) {
         try {
-            Tarifa nuevaTarifa = service.crearTarifa(tarifaDTO);
-            return ResponseEntity.status(HttpStatus.CREATED).body(nuevaTarifa);
+            Tarifa tarifaCreada = service.crearTarifa(tarifaDTO);
+
+            //  Convertir la entidad guardada de vuelta a DTO
+            TarifaDTO respuesta = convertirADTO(tarifaCreada);
+            return ResponseEntity.status(HttpStatus.CREATED).body(respuesta);
         } catch (RuntimeException e) {
             return ResponseEntity.badRequest().build();
         }
@@ -30,13 +33,17 @@ public class TarifaController {
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<Tarifa> obtenerTarifa(@PathVariable Long id) {
+    public ResponseEntity<TarifaDTO> obtenerTarifa(@PathVariable Long id) {
         return service.obtenerPorId(id)
-                .map(ResponseEntity::ok)
+                .map(tarifa -> {
+                    TarifaDTO respuesta = convertirADTO(tarifa);
+                    return ResponseEntity.ok(respuesta);
+                })
                 .orElse(ResponseEntity.notFound().build());
     }
 
-    @GetMapping("/{id}/calcular-costo")
+
+    @GetMapping("/{id}/calcular-costo-total")
     public ResponseEntity<Double> calcularCosto(
             @PathVariable Long id,
             @RequestParam Double distancia) {
@@ -48,8 +55,8 @@ public class TarifaController {
         }
     }
 
-    /*
-    @GetMapping("/{id}/calcular-costo")
+
+    @GetMapping("/{id}/calcular-costo-estimado")
     public ResponseEntity<Double> calcularCostoEstimado(
             @PathVariable Long id,
             @RequestParam Double distancia) {
@@ -61,5 +68,17 @@ public class TarifaController {
         }
     }
 
-     */
+    private TarifaDTO convertirADTO(Tarifa tarifa) {
+        return TarifaDTO.builder()
+                .id(tarifa.getId())
+                .nombre(tarifa.getNombre())
+                .patenteCamion(tarifa.getPatenteCamion())
+                .valorCombustibleLitro(tarifa.getValorCombustibleLitro())
+                .cargoGestionTrama(tarifa.getCargoGestionTrama())
+                .fechaVigencia(tarifa.getFechaVigencia())
+                .idTipoCamion(tarifa.getIdTipoCamion())
+                .idDeposito(tarifa.getIdDeposito())
+                .build();
+    }
+
 }

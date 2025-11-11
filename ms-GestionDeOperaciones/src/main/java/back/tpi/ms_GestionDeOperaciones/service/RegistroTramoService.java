@@ -176,7 +176,7 @@ public class RegistroTramoService {
 
         solicitud.setEstado(EstadoSolicitud.COMPLETADA);
         solicitud.setFechaFinalizacion(fin);
-        solicitud.setTiempoReal(horasReales);
+        solicitud.setTiempoReal(String.valueOf(horasReales));
         solicitud.setCostoFinal(costoRealTotal);
 
         solicitudRepository.save(solicitud);

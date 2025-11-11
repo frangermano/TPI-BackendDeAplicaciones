@@ -10,7 +10,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-
 @RestController
 @RequestMapping("/api/rutas-tentativas")
 @RequiredArgsConstructor
@@ -18,46 +17,29 @@ public class RutaTentativaController {
 
     private final RutaTentativaService rutaTentativaService;
 
-    /**
-     * Consulta rutas tentativas para una solicitud
-     * GET /api/rutas-tentativas/solicitud/{solicitudId}
-     *
-     * Retorna múltiples opciones de rutas con:
-     * - Tramos sugeridos
-     * - Costos estimados
-     * - Tiempos estimados
-     * - Ventajas y desventajas
-     */
     @GetMapping("/solicitud/{solicitudId}")
-    public ResponseEntity<List<Ruta>> consultarRutasTentativas(@PathVariable Long solicitudId) {
+    public ResponseEntity<List<RutaTentativaDTO>> consultarRutasTentativas(
+            @PathVariable Long solicitudId) {
         try {
-            List<Ruta> response = rutaTentativaService.consultarRutasTentativas(solicitudId);
-            return ResponseEntity.ok(response);
+            List<RutaTentativaDTO> rutas = rutaTentativaService
+                    .consultarRutasTentativas(solicitudId);
+            return ResponseEntity.ok(rutas);
         } catch (RuntimeException e) {
-            return ResponseEntity.notFound().build();
+            return ResponseEntity.badRequest().build();
         }
     }
 
-    /**
-     * Confirma y asigna una ruta tentativa seleccionada
-     * POST /api/rutas-tentativas/confirmar
-     *
-     * Convierte la ruta tentativa elegida en una ruta real asignada
-     */
     @PostMapping("/confirmar")
-    public ResponseEntity<SolicitudTraslado> confirmarRutaTentativa(
+    public ResponseEntity<RutaDTO> confirmarRutaTentativa(
             @RequestBody ConfirmarRutaTentativaDTO confirmarDTO) {
         try {
-            // Asignar la ruta seleccionada a la solicitud
-            SolicitudTraslado solicitudAsignada = rutaTentativaService.asignarRutaASolicitud(
+            RutaDTO ruta = rutaTentativaService.confirmarRutaTentativa(
                     confirmarDTO.getSolicitudTrasladoId(),
-                    Long.valueOf(confirmarDTO.getNumeroOpcionSeleccionada())
+                    confirmarDTO.getNumeroOpcionSeleccionada()
             );
-
-            return ResponseEntity.status(HttpStatus.CREATED).body(solicitudAsignada);
+            return ResponseEntity.status(HttpStatus.CREATED).body(ruta);
         } catch (RuntimeException e) {
             return ResponseEntity.badRequest().build();
         }
     }
 }
-

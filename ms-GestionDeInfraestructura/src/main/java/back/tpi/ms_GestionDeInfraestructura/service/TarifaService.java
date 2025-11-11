@@ -28,6 +28,11 @@ public class TarifaService {
     public Tarifa crearTarifa(TarifaDTO tarifaDTO) {
         log.info("Creando nueva tarifa: {}", tarifaDTO.getNombre());
 
+        // AGREGAR LOGS PARA DEBUGGEAR
+        log.info("DTO recibido - valorCombustibleLitro: {}", tarifaDTO.getValorCombustibleLitro());
+        log.info("DTO recibido - cargoGestionTrama: {}", tarifaDTO.getCargoGestionTrama());
+        log.info("DTO recibido - patenteCamion: {}", tarifaDTO.getPatenteCamion());
+
         // Convertir DTO a entidad
         Tarifa tarifa = Tarifa.builder()
                 .nombre(tarifaDTO.getNombre())
@@ -40,10 +45,35 @@ public class TarifaService {
                 .idDeposito(tarifaDTO.getIdDeposito())
                 .build();
 
+        // LOG DESPUÉS DE CONSTRUIR
+        log.info("Tarifa construida - valorCombustibleLitro: {}", tarifa.getValorCombustibleLitro());
+        log.info("Tarifa construida - cargoGestionTrama: {}", tarifa.getCargoGestionTrama());
+
         Tarifa tarifaGuardada = repository.save(tarifa);
         log.info("Tarifa creada exitosamente con ID: {}", tarifaGuardada.getId());
 
+        // LOG DESPUÉS DE GUARDAR
+        log.info("Tarifa guardada con ID: {} - valorCombustibleLitro: {}",
+                tarifaGuardada.getId(), tarifaGuardada.getValorCombustibleLitro());
+
         return tarifaGuardada;
+    }
+
+    @Transactional
+    public double calcularCostoEstimado(Long tarifaId, double distancia) {
+        Tarifa tarifa = repository.findById(tarifaId)
+                .orElseThrow(() -> new RuntimeException("Tarifa no encontrada con ID: " + tarifaId));
+        double consumoPorKm = 0.3;
+        log.info("Calculando costo estimado:");
+        log.info("  - Tarifa ID: {}", tarifaId);
+        log.info("  - Distancia: {} km", distancia);
+        log.info("  - Valor combustible por litro: {}", tarifa.getValorCombustibleLitro());
+        log.info("  - Consumo por km: {} L/km", consumoPorKm);
+
+
+        double costoEstimado = distancia * consumoPorKm * tarifa.getValorCombustibleLitro();
+        log.info("  - Costo estimado calculado: ${}", costoEstimado);
+        return Math.round(costoEstimado * 100.0) / 100.0;
     }
 
     @Transactional(readOnly = true)

@@ -56,4 +56,12 @@ public class ContenedorController {
             return ResponseEntity.notFound().build();
         }
     }
+
+    public ContenedorDTO convertirADTO(Contenedor contenedor) {
+        return ContenedorDTO.builder()
+                .id(contenedor.getId())
+                .peso((contenedor.getPeso()))
+                .volumen(contenedor.getVolumen())
+                .build();
+    }
 }

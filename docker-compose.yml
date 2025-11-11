@@ -1,5 +1,17 @@
 version: '3.9'
 services:
+  osrm:
+    image: osrm/osrm-backend:latest
+    container_name: osrm_service
+    command: osrm-routed /data/argentina-251105.osrm
+    ports:
+      - "5000:5000"
+    volumes:
+      - ./osrm-data:/data
+    networks:
+      - app-network
+
+
   postgres:
     image: postgres:16
     container_name: postgres_db
@@ -29,20 +41,6 @@ services:
     networks:
       - app-network
 
- ## ms-gestiondecostosytarifas:
-   ## build: ./ms-GestionDeCostosYTarifas
-    ##container_name: costos_ms
-    ##ports:
-      ##- "8081:8080"
-    ##environment:
-     # - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/app_db
-      #- SPRING_DATASOURCE_USERNAME=usuario
-      #- SPRING_DATASOURCE_PASSWORD=password
-      #- SPRING_JPA_HIBERNATE_DDL_AUTO=update
-    #depends_on:
-     # - postgres
-    #networks:
-     # - app-network
 
   ms-gestiondeinfraestructura:
     build: ./ms-GestionDeInfraestructura

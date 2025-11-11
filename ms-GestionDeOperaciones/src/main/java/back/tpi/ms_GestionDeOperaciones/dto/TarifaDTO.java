@@ -12,14 +12,11 @@ public class TarifaDTO {
     private Long id; // Puede venir null si es nueva
     private String nombre;
     private String patenteCamion;
-    private double valorCombustibleLitro;
-    private double cargoGestionTrama;
+    private Double valorCombustibleLitro;
+    private Double cargoGestionTrama;
     private Date fechaVigencia;
     private Long idTipoCamion;
     private Long idDeposito;
-    // Campos adicionales para cálculo de costos
-    private double costoPorHoraEstadia; // Costo por hora en depósito
-    private double factorPeso;          // Factor multiplicador por kg
-    private double factorVolumen;       // Factor multiplicador por m³
+
 }
 

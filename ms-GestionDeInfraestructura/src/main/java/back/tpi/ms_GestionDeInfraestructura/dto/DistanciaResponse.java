@@ -1,4 +1,4 @@
-package back.tpi.ms_GestionDeOperaciones.dto;
+package back.tpi.ms_GestionDeInfraestructura.dto;
 
 import lombok.Data;
 import java.util.List;
@@ -40,3 +40,4 @@ public class DistanciaResponse {
         return String.format("%d:%02d hs", horas, minutos);
     }
 }
+

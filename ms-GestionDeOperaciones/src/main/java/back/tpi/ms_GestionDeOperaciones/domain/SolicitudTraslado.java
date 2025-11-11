@@ -1,5 +1,6 @@
 package back.tpi.ms_GestionDeOperaciones.domain;
 
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
@@ -19,24 +20,17 @@ public class SolicitudTraslado {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     Long id;
 
-    //@Column(unique = true, nullable = false)
-    //Integer numero;
-
-    // ====== REFERENCIA A CLIENTE (LOCAL - MISMO MICROSERVICIO) ======
     @ManyToOne
     @JoinColumn(name = "cliente_id", nullable = false)
-    Cliente cliente;  // ✅ Relación JPA normal
-
+    Cliente cliente;
 
     @OneToOne
     @JoinColumn(nullable = false)
     Contenedor contenedor;
 
-    // ====== IDs DE REFERENCIA A OTROS MICROSERVICIOS ======
     @Column(nullable = false)
-    Long tarifaId;      // ID de la tarifa (en ms-tarifas)
+    Long tarifaId;
 
-    // ====== DATOS DE LA SOLICITUD ======
     @Column(nullable = false)
     String direccionOrigen;
 
@@ -54,8 +48,8 @@ public class SolicitudTraslado {
     EstadoSolicitud estado;
 
     Double costoEstimado;
-    Double tiempoEstimado; // en horas
-    Double tiempoReal;     // en horas
+    String tiempoEstimado; // en horas
+    String tiempoReal;     // en horas
     Double costoFinal;
 
     @Column(nullable = false)
@@ -65,5 +59,6 @@ public class SolicitudTraslado {
     LocalDateTime fechaFinalizacion;
 
     @OneToOne(mappedBy = "solicitudTraslado", cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonManagedReference
     Ruta ruta;
 }

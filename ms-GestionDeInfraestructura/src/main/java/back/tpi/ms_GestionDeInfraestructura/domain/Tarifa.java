@@ -1,5 +1,6 @@
 package back.tpi.ms_GestionDeInfraestructura.domain;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.persistence.*;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
@@ -28,6 +29,7 @@ public class Tarifa {
     String patenteCamion;
 
     @Column(nullable = false)
+    @JsonProperty("ValorCombustibleLitro")
     double valorCombustibleLitro;
 
     @Column(nullable = false)

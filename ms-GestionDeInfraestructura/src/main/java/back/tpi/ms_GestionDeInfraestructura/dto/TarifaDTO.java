@@ -14,21 +14,21 @@ public class TarifaDTO {
 
     private String nombre;
 
-    @JsonProperty("patente_camion")
+    @JsonProperty("patenteCamion")
     private String patenteCamion;
 
-    @JsonProperty("valor_combustible_litro")
-    private double valorCombustibleLitro;
+    @JsonProperty("valorCombustibleLitro")
+    private Double valorCombustibleLitro;
 
-    @JsonProperty("cargo_gestion_trama")
-    private double cargoGestionTrama;
+    @JsonProperty("cargoGestionTrama")
+    private Double cargoGestionTrama;
 
-    @JsonProperty("fecha_vigencia")
+    @JsonProperty("fechaVigencia")
     private Date fechaVigencia;
 
-    @JsonProperty("id_tipo_camion")
+    @JsonProperty("idTipoCamion")
     private Long idTipoCamion;
 
-    @JsonProperty("id_deposito")
+    @JsonProperty("idDeposito")
     private Long idDeposito;
 }

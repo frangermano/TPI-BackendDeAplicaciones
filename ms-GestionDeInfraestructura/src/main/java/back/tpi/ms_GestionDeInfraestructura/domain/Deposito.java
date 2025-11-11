@@ -25,8 +25,11 @@ public class Deposito {
     String direccion;
 
     @Column(nullable = false)
-    double coordenadas;
+    Double latitud;
 
     @Column(nullable = false)
-    double costo_estadia;
+    Double longitud;
+
+    @Column(nullable = false)
+    double costoEstadia;
 }

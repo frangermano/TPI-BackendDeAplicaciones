@@ -50,6 +50,18 @@ public class CamionController {
         return ResponseEntity.ok(response);
     }
 
+    /**
+     * Actualiza la disponibilidad de un camión
+     * PATCH /api/camiones/{patente}/disponibilidad?disponible=true|false
+     */
+    @PutMapping("/{patente}/disponibilidad")
+    public ResponseEntity<Void> actualizarDisponibilidad(
+            @PathVariable String patente,
+            @RequestParam Boolean disponible) {
+        camionService.actualizarDisponibilidad(patente, disponible);
+        return ResponseEntity.noContent().build();
+    }
+
     @PutMapping("/{patente}")
     public ResponseEntity<CamionResponseDTO> actualizarCamion(
             @PathVariable String patente,

@@ -104,6 +104,7 @@ public class RutaTentativaService {
             return List.of();
         }
 
+
         // Calcular distancia de ruta directa
         double distanciaRutaDirecta = calcularDistanciaHaversine(
                 solicitud.getCoordOrigenLat(),
@@ -404,6 +405,7 @@ public class RutaTentativaService {
                     .coordDestinoLat(tramoDTO.getCoordDestinoLat())
                     .coordDestinoLng(tramoDTO.getCoordDestinoLng())
                     .ruta(ruta)
+                    .distancia(tramoDTO.getDistancia())
                     .build();
 
             ruta.agregarTramo(tramo);
@@ -516,6 +518,7 @@ public class RutaTentativaService {
                 .coordOrigenLng(tramo.getCoordOrigenLng())
                 .coordDestinoLat(tramo.getCoordDestinoLat())
                 .coordDestinoLng(tramo.getCoordDestinoLng())
+                .distancia(tramo.getDistancia())
                 .build();
     }
 }

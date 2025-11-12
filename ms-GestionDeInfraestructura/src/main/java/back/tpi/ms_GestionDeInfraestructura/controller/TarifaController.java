@@ -43,17 +43,19 @@ public class TarifaController {
     }
 
 
+    /*
     @GetMapping("/{id}/calcular-costo-total")
     public ResponseEntity<Double> calcularCosto(
-            @PathVariable Long id,
-            @RequestParam Double distancia) {
+            @PathVariable Long id) {
         try {
-            Double costo = service.calcularCosto(id, distancia);
+            Double costo = service.calcularCosto(id);
             return ResponseEntity.ok(costo);
         } catch (RuntimeException e) {
             return ResponseEntity.badRequest().build();
         }
     }
+
+     */
 
 
     @GetMapping("/{id}/calcular-costo-estimado")

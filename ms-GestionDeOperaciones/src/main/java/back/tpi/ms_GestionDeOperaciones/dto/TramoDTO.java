@@ -33,4 +33,7 @@ public class TramoDTO {
     private Double coordOrigenLng;
     private Double coordDestinoLat;
     private Double coordDestinoLng;
+
+    private Double distancia;
+    private String tiempoEstimado;
 }

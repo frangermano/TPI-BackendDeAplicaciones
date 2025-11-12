@@ -27,9 +27,10 @@ public class RegistroTramoResponseDTO {
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     private LocalDateTime fechaHoraFin;
 
-    private Double duracionHoras; // Duración calculada del tramo
+    private String duracionHoras; // Duración calculada del tramo
     private String mensaje;
     private Boolean tramoCompletado;
+    private Double costoReal;
 
     // Información de la ruta
     private Long rutaId;

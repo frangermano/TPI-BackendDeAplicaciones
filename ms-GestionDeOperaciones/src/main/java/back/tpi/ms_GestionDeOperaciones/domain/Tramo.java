@@ -54,4 +54,6 @@ public class Tramo {
     Double coordOrigenLng;
     Double coordDestinoLat;
     Double coordDestinoLng;
+
+    Double distancia;
 }

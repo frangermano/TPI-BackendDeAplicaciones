@@ -12,6 +12,7 @@ import back.tpi.ms_GestionDeTransporte.repository.CamionRepository;
 import back.tpi.ms_GestionDeTransporte.repository.TipoCamionRepository;
 import back.tpi.ms_GestionDeTransporte.repository.TransportistaRepository;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -20,6 +21,7 @@ import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class CamionService {
 
     private final CamionRepository camionRepository;
@@ -91,6 +93,23 @@ public class CamionService {
         return camionRepository.findByTransportistaId(transportistaId).stream()
                 .map(camionMapper::toResponseDTO)
                 .collect(Collectors.toList());
+    }
+
+    /**
+     * Actualiza la disponibilidad de un camión
+     */
+    @Transactional
+    public void actualizarDisponibilidad(String patente, Boolean disponible) {
+        log.info("Actualizando disponibilidad del camión {} a: {}", patente, disponible);
+
+        Camion camion = camionRepository.findById(patente.toUpperCase())
+                .orElseThrow(() -> new ResourceNotFoundException(
+                        "Camión no encontrado con patente: " + patente));
+
+        camion.setDisponible(disponible);
+        camionRepository.save(camion);
+
+        log.info("✅ Disponibilidad del camión {} actualizada a: {}", patente, disponible);
     }
 
     @Transactional

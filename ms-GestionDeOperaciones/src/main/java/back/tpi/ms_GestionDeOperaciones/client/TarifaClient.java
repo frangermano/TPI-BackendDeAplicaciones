@@ -83,4 +83,19 @@ public class TarifaClient {
             throw new RuntimeException("Error al calcular costo: " + e.getMessage());
         }
     }
+
+
+    public Double calcularCostoReal(Long tarifaId,  double pesoContendor,
+                                    double volumenContenedor, double costoBaseTotal) {
+        try {
+            return restClient.get()
+                    .uri(tarifasServiceUrl + "/api/tarifas/{id}/calcular-costo-real",
+                            tarifaId)
+                    .retrieve()
+                    .body(Double.class);
+        } catch (Exception e) {
+            log.error("Error al calcular costo: {}", e.getMessage());
+            throw new RuntimeException("Error al calcular costo: " + e.getMessage());
+        }
+    }
 }

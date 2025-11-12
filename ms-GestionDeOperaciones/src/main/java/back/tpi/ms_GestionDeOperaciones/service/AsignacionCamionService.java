@@ -23,7 +23,7 @@ public class AsignacionCamionService {
     private final CamionClient camionClient;
 
     /**
-     * Asigna un camión a un tramo validando capacidad
+     * Asigna un camión a un tramo validando capacidad Y DISPONIBILIDAD
      */
     @Transactional
     public TramoDTO asignarCamionATramo(AsignarCamionDTO asignacionDTO) {
@@ -51,11 +51,11 @@ public class AsignacionCamionService {
                             asignacionDTO.getPatenteCamion(), e);
         }
 
-        // 3. Validar que el camión está disponible
+        // 3. ✅ VALIDACIÓN 1: Verificar que el camión está disponible
         if (!camion.getDisponible()) {
             throw new RuntimeException(
                     "El camión con patente " + asignacionDTO.getPatenteCamion() +
-                            " no está disponible");
+                            " no está disponible. Está actualmente asignado a otro tramo.");
         }
 
         // 4. Validar capacidad del camión (si está habilitado)
@@ -68,15 +68,10 @@ public class AsignacionCamionService {
 
         // 5. Asignar camión al tramo
         tramo.setCamionPatente(camion.getPatente());
-        // Nota: Si la patente es alfanumérica, considera cambiar el tipo de camionId a String
-        // o almacenar la patente completa en un nuevo campo String
-
         Tramo tramoActualizado = tramoRepository.save(tramo);
-        log.info("Camión {} asignado exitosamente al tramo ID: {}",
-                asignacionDTO.getPatenteCamion(), tramo.getId());
 
-        // 6. Opcional: Marcar camión como no disponible
-        // camionClient.actualizarDisponibilidad(asignacionDTO.getPatenteCamion(), false);
+        log.info("✅ Camión {} asignado exitosamente al tramo ID: {}",
+                asignacionDTO.getPatenteCamion(), tramo.getId());
 
         return convertirATramoDTO(tramoActualizado);
     }
@@ -124,7 +119,6 @@ public class AsignacionCamionService {
         log.info("Buscando camiones disponibles para contenedor ID: {}", contenedorId);
 
         // Obtener información del contenedor
-        // Asumiendo que tienes un ContenedorRepository
         Contenedor contenedor = obtenerContenedorPorId(contenedorId);
 
         // Obtener todos los camiones disponibles
@@ -175,14 +169,19 @@ public class AsignacionCamionService {
             throw new RuntimeException("El tramo no tiene camión asignado");
         }
 
-        // Opcional: Marcar camión como disponible en el microservicio
-        // String patente = obtenerPatenteDeCamion(tramo.getCamionId());
-        // camionClient.actualizarDisponibilidad(patente, true);
+        String patente = tramo.getCamionPatente();
+
+        // Marcar camión como disponible en el microservicio
+        try {
+            camionClient.actualizarDisponibilidad(patente, true);
+        } catch (Exception e) {
+            log.error("Error al liberar camión {}: {}", patente, e.getMessage());
+        }
 
         tramo.setCamionPatente(null);
         Tramo tramoActualizado = tramoRepository.save(tramo);
 
-        log.info("Camión liberado exitosamente del tramo ID: {}", tramoId);
+        log.info("✅ Camión {} liberado exitosamente del tramo ID: {}", patente, tramoId);
 
         return convertirATramoDTO(tramoActualizado);
     }
@@ -190,11 +189,9 @@ public class AsignacionCamionService {
     // ========== MÉTODOS AUXILIARES ==========
 
     /**
-     * Obtiene un contenedor por ID (necesitarás implementar según tu repositorio)
+     * Obtiene un contenedor por ID
      */
     private Contenedor obtenerContenedorPorId(Long contenedorId) {
-        // Implementar según tu estructura
-        // Por ahora, buscar a través de solicitudes
         List<SolicitudTraslado> solicitudes = solicitudRepository.findByContenedorId(contenedorId);
         if (solicitudes.isEmpty()) {
             throw new RuntimeException("Contenedor no encontrado con ID: " + contenedorId);

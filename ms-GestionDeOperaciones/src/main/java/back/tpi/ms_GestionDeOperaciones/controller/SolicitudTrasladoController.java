@@ -80,6 +80,11 @@ public class SolicitudTrasladoController {
      * @param // id ID de la solicitud de traslado
      * @return Detalle completo del cálculo de costos
      */
+    @PostMapping("/{id}/calcular-costo-real")
+    public ResponseEntity<CostoDetalleDTO> calcularCostoReal(@PathVariable Long id) {
+        CostoDetalleDTO costoDetalle = service.calcularCostoReal(id);
+        return ResponseEntity.ok(costoDetalle);
+    }
     /*
     @PostMapping("/{id}/calcular-costo")
     public ResponseEntity<CostoDetalleDTO> calcularCosto(@PathVariable Long id) {

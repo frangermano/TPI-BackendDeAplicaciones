@@ -2,14 +2,8 @@ package back.tpi.ms_GestionDeOperaciones.service;
 
 import back.tpi.ms_GestionDeOperaciones.client.OsrmClient;
 import back.tpi.ms_GestionDeOperaciones.client.TarifaClient;
-import back.tpi.ms_GestionDeOperaciones.domain.Cliente;
-import back.tpi.ms_GestionDeOperaciones.domain.Contenedor;
-import back.tpi.ms_GestionDeOperaciones.domain.EstadoSolicitud;
-import back.tpi.ms_GestionDeOperaciones.domain.SolicitudTraslado;
-import back.tpi.ms_GestionDeOperaciones.dto.DistanciaResponse;
-import back.tpi.ms_GestionDeOperaciones.dto.EstadoTransporteDTO;
-import back.tpi.ms_GestionDeOperaciones.dto.SolicitudTrasladoDTO;
-import back.tpi.ms_GestionDeOperaciones.dto.TarifaDTO;
+import back.tpi.ms_GestionDeOperaciones.domain.*;
+import back.tpi.ms_GestionDeOperaciones.dto.*;
 import back.tpi.ms_GestionDeOperaciones.repository.SolicitudTrasladoRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -19,7 +13,10 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.time.LocalDateTime;
+import java.time.temporal.ChronoUnit;
 import java.util.List;
+import java.util.Objects;
+import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -224,7 +221,82 @@ public class SolicitudTrasladoService {
         };
     }
 
+    @Transactional(readOnly = true)
+    public CostoDetalleDTO calcularCostoReal(Long solicitudId) {
+        SolicitudTraslado solicitudTraslado = obtenerPorId(solicitudId);
+        if (solicitudTraslado.getEstado() != EstadoSolicitud.COMPLETADA) {
+            throw new IllegalStateException("La solicitud debe estar COMPLETADA para calcular el costo real.");
+        }
+        Ruta ruta = solicitudTraslado.getRuta();
+        if (ruta == null) {
+            throw new IllegalStateException("❌ La solicitud no tiene una ruta asociada.");
+        }
 
+        solicitudTraslado.getRuta().getTramos().forEach(t -> {
+            log.info("Tramo ID: {}, costoReal: {}, distancia: {}",
+                    t.getId(), t.getCostoReal(), t.getDistancia());
+        });
+
+        List<Tramo> tramos = ruta.getTramos();
+        if (tramos == null || tramos.isEmpty()) {
+            throw new IllegalStateException("❌ La ruta no contiene tramos registrados.");
+        }
+
+        Contenedor contenedor = solicitudTraslado.getContenedor();
+
+        double distanciaTotalTramos = solicitudTraslado.getRuta().getTramos()
+                .stream()
+                .filter(Objects::nonNull)
+                .map(Tramo::getDistancia)
+                .filter(Objects::nonNull)
+                .mapToDouble(Double::doubleValue)
+                .sum();
+
+        // Sumar costos reales ya calculados en los tramos
+        double costoTotalTramos = solicitudTraslado.getRuta().getTramos()
+                .stream()
+                .filter(Objects::nonNull) // evita tramos nulos
+                .map(Tramo::getCostoReal)
+                .filter(Objects::nonNull) // evita costos nulos
+                .mapToDouble(Double::doubleValue)
+                .sum();
+
+        TarifaDTO tarifaDTO = tarifaClient.getTarifa(solicitudTraslado.getTarifaId());
+        int cantidadTramos = ruta.getCantidadTramos();
+        double costoFijoTramo = cantidadTramos * 1000;
+
+        double costoFinal = costoTotalTramos + tarifaDTO.getCargoGestionTrama() + costoFijoTramo;
+        double recargoContenedor = 1.0; // base sin recargo
+
+        double peso = contenedor.getPeso();
+        double volumen = contenedor.getVolumen();
+
+        if (peso > 50 || volumen > 80) {
+            recargoContenedor = 1.6; // carga muy pesada o voluminosa
+        } else if (peso > 35 || volumen > 60) {
+            recargoContenedor = 1.4; // carga grande
+        } else if (peso > 20 || volumen > 40) {
+            recargoContenedor = 1.2; // carga media
+        } else {
+            recargoContenedor = 1.0; // carga liviana / normal
+        }
+
+        costoFinal *= recargoContenedor;
+
+        log.info("Recargo aplicado según peso/volumen: x{} (peso={}kg, volumen={}m³)",
+                recargoContenedor, peso, volumen);
+        log.info("Costo final total (con recargo y gestión): {}", costoFinal);
+
+        return CostoDetalleDTO.builder()
+                .solicitudId(solicitudId)
+                .distanciaTotal(distanciaTotalTramos)
+                .pesoContenedor(peso)
+                .volumenContenedor(volumen)
+                .costoTotal(costoFinal)
+                .build();
+
+
+    }
 
     @Transactional(readOnly = true)
     public List<SolicitudTraslado> obtenerTodas() {

@@ -115,14 +115,14 @@ public class TarifaService {
      * Calcula el costo total del traslado basado en la tarifa y la distancia
      * Fórmula: (distancia * consumo_por_km * valor_combustible_litro) + cargo_gestion
      */
+    /*
     @Transactional(readOnly = true)
-    public Double calcularCosto(Long tarifaId, Double distanciaKm) {
+    public Double calcularCosto(Long tarifaId) {
         Tarifa tarifa = repository.findById(tarifaId)
                 .orElseThrow(() -> new RuntimeException("Tarifa no encontrada con ID: " + tarifaId));
 
         // Asumimos que el camión consume aproximadamente 0.3 litros por km
-        double consumoPorKm = 0.3;
-        double costoCombustible = distanciaKm * consumoPorKm * tarifa.getValorCombustibleLitro();
+        double costoCombustible = tarifa.getValorCombustibleLitro();
         double costoTotal = costoCombustible + tarifa.getCargoGestionTrama();
 
         log.info("Calculando costo para tarifa {}: distancia={}km, costo={}",
@@ -130,6 +130,8 @@ public class TarifaService {
 
         return costoTotal;
     }
+
+     */
 
     @Transactional
     public Tarifa actualizarTarifa(Long id, Tarifa tarifaActualizada) {

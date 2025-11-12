@@ -1,7 +1,9 @@
 package back.tpi.ms_GestionDeOperaciones.service;
 
+import back.tpi.ms_GestionDeOperaciones.client.OsrmClient;
 import back.tpi.ms_GestionDeOperaciones.domain.*;
 import back.tpi.ms_GestionDeOperaciones.dto.AsignarRutaDTO;
+import back.tpi.ms_GestionDeOperaciones.dto.DistanciaResponse;
 import back.tpi.ms_GestionDeOperaciones.dto.RutaDTO;
 import back.tpi.ms_GestionDeOperaciones.dto.TramoDTO;
 import back.tpi.ms_GestionDeOperaciones.repository.RutaRepository;
@@ -24,6 +26,7 @@ public class RutaService {
     private final RutaRepository rutaRepository;
     private final TramoRepository tramoRepository;
     private final SolicitudTrasladoRepository solicitudRepository;
+    private final OsrmClient osrmClient;
 
     /**
      * Asigna una ruta completa con todos sus tramos a una solicitud de traslado
@@ -148,6 +151,10 @@ public class RutaService {
     }
 
     private TramoDTO convertirATramoDTO(Tramo tramo) {
+        DistanciaResponse resp = osrmClient.calcularDistancia(tramo.getCoordOrigenLat(),
+                tramo.getCoordOrigenLng(), tramo.getCoordDestinoLat(), tramo.getCoordDestinoLng());
+        Double distancia = resp.getDistanciaKm();
+        String tiempoEstimado = resp.getTiempoLegible();
         return TramoDTO.builder()
                 .id(tramo.getId())
                 .origen(tramo.getOrigen())
@@ -163,6 +170,8 @@ public class RutaService {
                 .coordOrigenLng(tramo.getCoordOrigenLng())
                 .coordDestinoLat(tramo.getCoordDestinoLat())
                 .coordDestinoLng(tramo.getCoordDestinoLng())
+                .distancia(distancia)
+                .tiempoEstimado(tiempoEstimado)
                 .build();
     }
 }

@@ -3,21 +3,29 @@ package back.tpi.ms_GestionDeOperaciones.dto;
 import back.tpi.ms_GestionDeOperaciones.domain.EstadoSolicitud;
 import lombok.*;
 
-/**
- * DTO simplificado con solo 3 filtros esenciales
- */
+import java.time.LocalDateTime;
+
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
 public class FiltrosContenedorDTO {
 
-    // Filtro 1: Por estado de la solicitud
     private EstadoSolicitud estado;
-
-    // Filtro 2: Por cliente
     private Long clienteId;
 
-    // Filtro 3: Solo mostrar atrasados
-    private Boolean soloAtrasados;
+
+    // Por rango de fechas de solicitud
+    private LocalDateTime fechaSolicitudDesde;
+    private LocalDateTime fechaSolicitudHasta;
+
+    // Por rangos de peso/volumen (útil para logística)
+    private Double pesoMinimo;
+    private Double pesoMaximo;
+    private Double volumenMinimo;
+    private Double volumenMaximo;
+
+    // Por ubicación (origen o destino)
+    private String ciudadOrigen;
+    private String ciudadDestino;
 }

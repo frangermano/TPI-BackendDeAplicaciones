@@ -75,15 +75,35 @@ public class ContenedorPendienteService {
     private List<SolicitudTraslado> aplicarFiltros(List<SolicitudTraslado> solicitudes,
                                                    FiltrosContenedorDTO filtros) {
         return solicitudes.stream()
-                // Filtro 1: Por estado
+                // Filtros existentes
                 .filter(s -> filtros.getEstado() == null || s.getEstado() == filtros.getEstado())
-                // Filtro 2: Por cliente
                 .filter(s -> filtros.getClienteId() == null ||
                         s.getCliente().getId().equals(filtros.getClienteId()))
-                // Filtro 3: Solo atrasados
-                .filter(s -> filtros.getSoloAtrasados() == null ||
-                        !filtros.getSoloAtrasados() ||
-                        esAtrasado(s))
+
+                // 1️⃣ Filtro por rango de fechas
+                .filter(s -> filtros.getFechaSolicitudDesde() == null ||
+                        s.getFechaSolicitud().isAfter(filtros.getFechaSolicitudDesde()))
+                .filter(s -> filtros.getFechaSolicitudHasta() == null ||
+                        s.getFechaSolicitud().isBefore(filtros.getFechaSolicitudHasta()))
+
+                // 2️⃣ Filtros por peso y volumen
+                .filter(s -> filtros.getPesoMinimo() == null ||
+                        s.getContenedor().getPeso() >= filtros.getPesoMinimo())
+                .filter(s -> filtros.getPesoMaximo() == null ||
+                        s.getContenedor().getPeso() <= filtros.getPesoMaximo())
+                .filter(s -> filtros.getVolumenMinimo() == null ||
+                        s.getContenedor().getVolumen() >= filtros.getVolumenMinimo())
+                .filter(s -> filtros.getVolumenMaximo() == null ||
+                        s.getContenedor().getVolumen() <= filtros.getVolumenMaximo())
+
+                // 3️⃣ Filtros por ubicación
+                .filter(s -> filtros.getCiudadOrigen() == null ||
+                        s.getDireccionOrigen().toLowerCase()
+                                .contains(filtros.getCiudadOrigen().toLowerCase()))
+                .filter(s -> filtros.getCiudadDestino() == null ||
+                        s.getDireccionDestino().toLowerCase()
+                                .contains(filtros.getCiudadDestino().toLowerCase()))
+
                 .collect(Collectors.toList());
     }
 
@@ -136,8 +156,6 @@ public class ContenedorPendienteService {
                 .porcentajeProgreso(Math.round(porcentaje * 100.0) / 100.0)
                 .fechaSolicitud(solicitud.getFechaSolicitud())
                 .fechaEstimadaEntrega(fechaEstimada)
-                .diasEnTransito(calcularDiasEnTransito(solicitud))
-                .atrasado(esAtrasado(solicitud))
                 .costoEstimado(solicitud.getCostoEstimado())
                 .build();
     }
@@ -213,27 +231,5 @@ public class ContenedorPendienteService {
         }
     }
 
-    /**
-     * Calcula días en tránsito
-     */
-    private Integer calcularDiasEnTransito(SolicitudTraslado solicitud) {
-        if (solicitud.getFechaInicio() == null) {
-            return 0;
-        }
-        return (int) ChronoUnit.DAYS.between(solicitud.getFechaInicio(), LocalDateTime.now());
-    }
 
-    /**
-     * Determina si está atrasado
-     */
-    private boolean esAtrasado(SolicitudTraslado solicitud) {
-        if (solicitud.getFechaInicio() == null || solicitud.getTiempoEstimado() == null) {
-            return false;
-        }
-
-        LocalDateTime fechaEstimada = solicitud.getFechaInicio()
-                .plusHours(Long.parseLong(solicitud.getTiempoEstimado()));
-
-        return LocalDateTime.now().isAfter(fechaEstimada);
-    }
 }

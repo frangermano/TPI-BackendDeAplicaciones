@@ -6,6 +6,8 @@ import back.tpi.ms_GestionDeOperaciones.dto.AsignarRutaDTO;
 import back.tpi.ms_GestionDeOperaciones.dto.DistanciaResponse;
 import back.tpi.ms_GestionDeOperaciones.dto.RutaDTO;
 import back.tpi.ms_GestionDeOperaciones.dto.TramoDTO;
+import back.tpi.ms_GestionDeOperaciones.mapper.RutaMapper;
+import back.tpi.ms_GestionDeOperaciones.mapper.TramoMapper;
 import back.tpi.ms_GestionDeOperaciones.repository.RutaRepository;
 import back.tpi.ms_GestionDeOperaciones.repository.SolicitudTrasladoRepository;
 import back.tpi.ms_GestionDeOperaciones.repository.TramoRepository;
@@ -27,6 +29,8 @@ public class RutaService {
     private final TramoRepository tramoRepository;
     private final SolicitudTrasladoRepository solicitudRepository;
     private final OsrmClient osrmClient;
+    private final RutaMapper rutaMapper;
+    private final TramoMapper tramoMapper;
 
     /**
      * Asigna una ruta completa con todos sus tramos a una solicitud de traslado
@@ -98,7 +102,7 @@ public class RutaService {
                 rutaGuardada.getCantidadDepositos());
 
         // 9. Retornar DTO
-        return convertirARutaDTO(rutaGuardada);
+        return rutaMapper.toDTO(rutaGuardada);
     }
 
     /**
@@ -109,7 +113,7 @@ public class RutaService {
         Ruta ruta = rutaRepository.findBySolicitudTrasladoId(solicitudId)
                 .orElseThrow(() -> new RuntimeException("No se encontró ruta para la solicitud ID: " + solicitudId));
 
-        return convertirARutaDTO(ruta);
+        return rutaMapper.toDTO(ruta);
     }
 
     /**
@@ -119,7 +123,7 @@ public class RutaService {
     public List<TramoDTO> obtenerTramosPorRuta(Long rutaId) {
         List<Tramo> tramos = tramoRepository.findByRutaId(rutaId);
         return tramos.stream()
-                .map(this::convertirATramoDTO)
+                .map(tramoMapper::toDTO)
                 .collect(Collectors.toList());
     }
 
@@ -136,42 +140,4 @@ public class RutaService {
         log.info("Ruta ID: {} eliminada junto con sus tramos", rutaId);
     }
 
-    // ========== MÉTODOS DE CONVERSIÓN ==========
-
-    private RutaDTO convertirARutaDTO(Ruta ruta) {
-        return RutaDTO.builder()
-                .id(ruta.getId())
-                .solicitudTrasladoId(ruta.getSolicitudTraslado().getId())
-                .cantidadTramos(ruta.getCantidadTramos())
-                .cantidadDepositos(ruta.getCantidadDepositos())
-                .tramos(ruta.getTramos().stream()
-                        .map(this::convertirATramoDTO)
-                        .collect(Collectors.toList()))
-                .build();
-    }
-
-    private TramoDTO convertirATramoDTO(Tramo tramo) {
-        DistanciaResponse resp = osrmClient.calcularDistancia(tramo.getCoordOrigenLat(),
-                tramo.getCoordOrigenLng(), tramo.getCoordDestinoLat(), tramo.getCoordDestinoLng());
-        Double distancia = resp.getDistanciaKm();
-        String tiempoEstimado = resp.getTiempoLegible();
-        return TramoDTO.builder()
-                .id(tramo.getId())
-                .origen(tramo.getOrigen())
-                .destino(tramo.getDestino())
-                .tipoTramo(tramo.getTipoTramo())
-                .estado(tramo.getEstado())
-                .costoAproximado(tramo.getCostoAproximado())
-                .costoReal(tramo.getCostoReal())
-                .fechaHoraInicio(tramo.getFechaHoraInicio())
-                .fechaHoraFin(tramo.getFechaHoraFin())
-                .camionPatente(tramo.getCamionPatente())
-                .coordOrigenLat(tramo.getCoordOrigenLat())
-                .coordOrigenLng(tramo.getCoordOrigenLng())
-                .coordDestinoLat(tramo.getCoordDestinoLat())
-                .coordDestinoLng(tramo.getCoordDestinoLng())
-                .distancia(distancia)
-                .tiempoEstimado(tiempoEstimado)
-                .build();
-    }
 }

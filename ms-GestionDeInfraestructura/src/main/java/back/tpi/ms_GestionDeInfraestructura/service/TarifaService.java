@@ -60,21 +60,29 @@ public class TarifaService {
     }
 
     @Transactional
-    public double calcularCostoEstimado(Long tarifaId, double distancia) {
+    public double calcularCostoEstimado(Long tarifaId, double distanciaKm) {
         Tarifa tarifa = repository.findById(tarifaId)
                 .orElseThrow(() -> new RuntimeException("Tarifa no encontrada con ID: " + tarifaId));
-        double consumoPorKm = 0.3;
-        log.info("Calculando costo estimado:");
-        log.info("  - Tarifa ID: {}", tarifaId);
-        log.info("  - Distancia: {} km", distancia);
-        log.info("  - Valor combustible por litro: {}", tarifa.getValorCombustibleLitro());
-        log.info("  - Consumo por km: {} L/km", consumoPorKm);
 
+        // Consumo promedio por km (en litros/km)
+        // Suponemos camión mediano por defecto para estimar
+        double consumoPorKm = 0.3; // 30 L/100 km
 
-        double costoEstimado = distancia * consumoPorKm * tarifa.getValorCombustibleLitro();
-        log.info("  - Costo estimado calculado: ${}", costoEstimado);
+        // Costo operativo promedio por km (mantenimiento, chofer, peajes, etc.)
+        double costoOperativoPorKm = 200.0;
+
+        // Cálculo base
+        double costoCombustible = distanciaKm * consumoPorKm * tarifa.getValorCombustibleLitro();
+        double costoOperativo = distanciaKm * costoOperativoPorKm;
+
+        double costoEstimado = costoCombustible + costoOperativo + tarifa.getCargoGestionTrama();
+
+        log.info("💰 Costo estimado: distancia={} km, combustible={} $, operativo={} $, total={}",
+                distanciaKm, costoCombustible, costoOperativo, costoEstimado);
+
         return Math.round(costoEstimado * 100.0) / 100.0;
     }
+
 
     @Transactional(readOnly = true)
     public List<Tarifa> obtenerTodas() {

@@ -270,37 +270,30 @@ public class DataInitializer implements CommandLineRunner {
      * Basado en consumo promedio: camiones grandes consumen más
      */
     private double calcularCostoCombustible(TipoCamion tipo) {
-        // Precio base del combustible (diesel): ~$800 por litro (Argentina 2024)
-        double precioCombustible = 800.0;
-
-        // Consumo estimado en litros/100km según capacidad
+        double precioCombustible = 1100.0;
         double consumoBase;
-        if (tipo.getCapacidadPeso() <= 5.0) {
-            consumoBase = 25.0; // Camiones ligeros
-        } else if (tipo.getCapacidadPeso() <= 12.0) {
-            consumoBase = 35.0; // Camiones medianos
-        } else if (tipo.getCapacidadPeso() <= 20.0) {
-            consumoBase = 45.0; // Camiones pesados
+
+        if (tipo.getCapacidadPeso() <= 5000.0) { // <= 5 toneladas
+            consumoBase = 25.0;
+        } else if (tipo.getCapacidadPeso() <= 12000.0) { // <= 12 toneladas
+            consumoBase = 35.0;
+        } else if (tipo.getCapacidadPeso() <= 20000.0) { // <= 20 toneladas
+            consumoBase = 45.0;
         } else {
-            consumoBase = 55.0; // Camiones muy pesados
+            consumoBase = 55.0;
         }
 
-        // Costo por km = (consumo/100) * precio_litro
         return Math.round((consumoBase / 100.0) * precioCombustible * 100.0) / 100.0;
     }
 
-    /**
-     * Calcula costo operativo por km según el tipo de camión
-     * Incluye desgaste, mantenimiento, seguros, etc.
-     */
     private double calcularCostoKm(TipoCamion tipo) {
-        // Costo base operativo según tamaño
         double costoBase;
-        if (tipo.getCapacidadPeso() <= 5.0) {
+
+        if (tipo.getCapacidadPeso() <= 5000.0) {
             costoBase = 150.0;
-        } else if (tipo.getCapacidadPeso() <= 12.0) {
+        } else if (tipo.getCapacidadPeso() <= 12000.0) {
             costoBase = 250.0;
-        } else if (tipo.getCapacidadPeso() <= 20.0) {
+        } else if (tipo.getCapacidadPeso() <= 20000.0) {
             costoBase = 350.0;
         } else {
             costoBase = 500.0;
@@ -308,4 +301,5 @@ public class DataInitializer implements CommandLineRunner {
 
         return Math.round(costoBase * 100.0) / 100.0;
     }
+
 }

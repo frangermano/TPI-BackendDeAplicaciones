@@ -2,6 +2,7 @@ package back.tpi.ms_GestionDeOperaciones.dto;
 
 import back.tpi.ms_GestionDeOperaciones.domain.EstadoTramo;
 import com.fasterxml.jackson.annotation.JsonFormat;
+import com.fasterxml.jackson.annotation.JsonInclude;
 import lombok.*;
 
 import java.time.LocalDateTime;
@@ -10,6 +11,7 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
+@JsonInclude(JsonInclude.Include.NON_NULL)
 public class TramoDTO {
 
     private Long id;

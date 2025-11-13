@@ -4,6 +4,7 @@ import back.tpi.ms_GestionDeOperaciones.client.OsrmClient;
 import back.tpi.ms_GestionDeOperaciones.client.TarifaClient;
 import back.tpi.ms_GestionDeOperaciones.domain.*;
 import back.tpi.ms_GestionDeOperaciones.dto.*;
+import back.tpi.ms_GestionDeOperaciones.mapper.SolicitudTrasladoMapper;
 import back.tpi.ms_GestionDeOperaciones.repository.SolicitudTrasladoRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -17,6 +18,7 @@ import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -28,6 +30,7 @@ public class SolicitudTrasladoService {
     private final ContenedorService contenedorService;
     private final TarifaClient tarifaClient;
     private final OsrmClient osrmClient;
+    private final SolicitudTrasladoMapper solicitudTrasladoMapper;
 
 
     // REQUERIMIENTO 1
@@ -39,7 +42,7 @@ public class SolicitudTrasladoService {
      * d) Crea una nueva tarifa en el microservicio de tarifas
      */
     @Transactional
-    public SolicitudTraslado crearSolicitudCompleta(SolicitudTrasladoDTO solicitudDTO) {
+    public SolicitudTrasladoDTO crearSolicitudCompleta(SolicitudTrasladoDTO solicitudDTO) {
         log.info("Iniciando creación de solicitud de traslado completa");
 
         // b) REGISTRAR O VERIFICAR CLIENTE (LOCAL)
@@ -94,7 +97,7 @@ public class SolicitudTrasladoService {
                 solicitudGuardada.getId(),
                 solicitudGuardada.getEstado());
 
-        return solicitudGuardada;
+        return solicitudTrasladoMapper.toDTOSolictudCreada(solicitudGuardada, tarifaCreada);
     }
 
 
@@ -223,7 +226,8 @@ public class SolicitudTrasladoService {
 
     @Transactional(readOnly = true)
     public CostoDetalleDTO calcularCostoReal(Long solicitudId) {
-        SolicitudTraslado solicitudTraslado = obtenerPorId(solicitudId);
+        SolicitudTraslado solicitudTraslado = repository.findById(solicitudId)
+                .orElseThrow(() -> new RuntimeException("Solicitud no encontrada con ID: " + solicitudId));
         if (solicitudTraslado.getEstado() != EstadoSolicitud.COMPLETADA) {
             throw new IllegalStateException("La solicitud debe estar COMPLETADA para calcular el costo real.");
         }
@@ -293,20 +297,26 @@ public class SolicitudTrasladoService {
                 .pesoContenedor(peso)
                 .volumenContenedor(volumen)
                 .costoTotal(costoFinal)
+                .tarifaId(tarifaDTO.getId())
+                .nombreTarifa(tarifaDTO.getNombre())
                 .build();
-
-
     }
 
     @Transactional(readOnly = true)
-    public List<SolicitudTraslado> obtenerTodas() {
-        return repository.findAll();
+    public List<SolicitudTrasladoDTO> obtenerTodas() {
+        return repository.findAll()
+                .stream()
+                .map(solicitudTrasladoMapper::toDTO) // usa tu mapper
+                .collect(Collectors.toList());
     }
 
+
     @Transactional(readOnly = true)
-    public SolicitudTraslado obtenerPorId(Long id) {
-        return repository.findById(id)
+    public SolicitudTrasladoDTO obtenerPorId(Long id) {
+        SolicitudTraslado solicitudTraslado = repository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Solicitud no encontrada con ID: " + id));
+        SolicitudTrasladoDTO solicitudTrasladoDTO = solicitudTrasladoMapper.toDTO(solicitudTraslado);
+        return solicitudTrasladoDTO;
     }
 
 
@@ -316,8 +326,9 @@ public class SolicitudTrasladoService {
     }
 
     @Transactional
-    public SolicitudTraslado actualizarEstado(Long id, EstadoSolicitud nuevoEstado) {
-        SolicitudTraslado solicitud = obtenerPorId(id);
+    public SolicitudTrasladoDTO actualizarEstado(Long id, EstadoSolicitud nuevoEstado) {
+        SolicitudTraslado solicitud = repository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Solicitud no encontrada con ID: " + id));;
         solicitud.setEstado(nuevoEstado);
 
         // Actualizar fechas según el estado
@@ -331,12 +342,15 @@ public class SolicitudTrasladoService {
                 break;
         }
 
-        return repository.save(solicitud);
+        SolicitudTraslado solicitudActualizada = repository.save(solicitud);
+
+        return solicitudTrasladoMapper.toDTO(solicitudActualizada);
     }
 
     @Transactional
     public SolicitudTraslado finalizarSolicitud(Long id, Double costoFinal, String tiempoReal) {
-        SolicitudTraslado solicitud = obtenerPorId(id);
+        SolicitudTraslado solicitud = repository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Solicitud no encontrada con ID: " + id));
         solicitud.setEstado(EstadoSolicitud.COMPLETADA);
         solicitud.setCostoFinal(costoFinal);
         solicitud.setTiempoReal(tiempoReal);
@@ -353,28 +367,4 @@ public class SolicitudTrasladoService {
         repository.deleteById(id);
     }
 
-    // ========== MÉTODOS AUXILIARES ==========
-
-
-    /**
-     * Calcula distancia entre coordenadas (fórmula de Haversine)
-     */
-    private Double calcularDistancia(Double lat1, Double lon1, Double lat2, Double lon2) {
-        if (lat1 == null || lon1 == null || lat2 == null || lon2 == null) {
-            return 100.0; // Distancia por defecto
-        }
-
-        final int R = 6371; // Radio de la Tierra en km
-
-        double latDistance = Math.toRadians(lat2 - lat1);
-        double lonDistance = Math.toRadians(lon2 - lon1);
-
-        double a = Math.sin(latDistance / 2) * Math.sin(latDistance / 2)
-                + Math.cos(Math.toRadians(lat1)) * Math.cos(Math.toRadians(lat2))
-                * Math.sin(lonDistance / 2) * Math.sin(lonDistance / 2);
-
-        double c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-
-        return R * c;
-    }
 }

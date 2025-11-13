@@ -63,7 +63,6 @@ public class RegistroTramoController {
     }
 
 
-
     // DTO para respuestas de error
     @lombok.Data
     @lombok.AllArgsConstructor

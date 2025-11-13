@@ -13,11 +13,13 @@ public class DistanciaResponse {
         private double duration; // en segundos
     }
 
-    // 🔹 Distancia numérica (en km)
+    // 🔹 Devuelve la distancia en kilómetros, redondeada a 2 decimales
     public double getDistanciaKm() {
-        return routes != null && !routes.isEmpty()
-                ? routes.get(0).getDistance() / 1000.0
-                : 0.0;
+        if (routes != null && !routes.isEmpty()) {
+            double distanciaKm = routes.get(0).getDistance() / 1000.0;
+            return Math.round(distanciaKm * 100.0) / 100.0; // Redondea a 2 decimales
+        }
+        return 0.0;
     }
 
     // 🔹 Tiempo numérico (en horas decimales)

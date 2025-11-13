@@ -11,7 +11,6 @@ import lombok.*;
 @Builder
 public class TramoTentativoDTO {
 
-    private Integer orden; // Orden del tramo en la ruta (1, 2, 3...)
     private String origen;
     private String destino;
     private String tipoTramo; // TRANSPORTE, DEPOSITO
@@ -27,11 +26,4 @@ public class TramoTentativoDTO {
     private Double costoEstimado;
     private String tiempoEstimado; // en horas
 
-    // Camión sugerido (opcional)
-    private Long camionSugeridoId;
-    private String camionSugeridoTipo;
-
-    // Información adicional
-    private String descripcion;
-    private Boolean requierePermisoEspecial;
 }

@@ -1,11 +1,13 @@
 package back.tpi.ms_GestionDeOperaciones.dto;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
 import lombok.*;
 
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
+@JsonInclude(JsonInclude.Include.NON_NULL)
 public class CostoDetalleDTO {
 
     private Long solicitudId;

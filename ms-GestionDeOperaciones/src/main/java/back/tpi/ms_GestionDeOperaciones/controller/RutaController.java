@@ -81,37 +81,5 @@ public class RutaController {
         }
     }
 
-    public RutaDTO convertirADTO(Ruta ruta) {
-        return RutaDTO.builder()
-                .id(ruta.getId())
-                .solicitudTrasladoId(ruta.getSolicitudTraslado().getId())
-                .cantidadTramos(ruta.getCantidadTramos())
-                .cantidadDepositos(ruta.getCantidadDepositos())
-                .tramos(
-                        ruta.getTramos().stream()
-                                .map(this::convertirTramoADTO)
-                                .collect(Collectors.toList())
-                )
-                .build();
-    }
-
-    public TramoDTO convertirTramoADTO(Tramo tramo) {
-        return TramoDTO.builder()
-                .id(tramo.getId())
-                .origen(tramo.getOrigen())
-                .destino(tramo.getDestino())
-                .tipoTramo(tramo.getTipoTramo())
-                .estado(tramo.getEstado())
-                .costoAproximado(tramo.getCostoAproximado())
-                .costoReal(tramo.getCostoReal())
-                .fechaHoraInicio(tramo.getFechaHoraInicio())
-                .fechaHoraFin(tramo.getFechaHoraFin())
-                .camionPatente(tramo.getCamionPatente())
-                .coordOrigenLat(tramo.getCoordOrigenLat())
-                .coordOrigenLng(tramo.getCoordOrigenLng())
-                .coordDestinoLat(tramo.getCoordDestinoLat())
-                .coordDestinoLng(tramo.getCoordDestinoLng())
-                .build();
-    }
 
 }

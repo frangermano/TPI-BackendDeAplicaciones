@@ -14,7 +14,6 @@ import java.util.List;
 public class RutaTentativaDTO {
 
     private Integer numeroOpcion; // Opción 1, 2, 3...
-    private String nombreRuta; // Ej: "Ruta Directa", "Ruta con Depósitos"
     private String descripcion; // Descripción de la ruta
 
     // Tramos sugeridos
@@ -30,8 +29,6 @@ public class RutaTentativaDTO {
     private String tiempoEstimadoTotal; // en horas
 
     // Información adicional
-    private String tipoRuta; // DIRECTA, ECONOMICA, RAPIDA, BALANCEADA
-    private Integer prioridad; // 1 = más recomendada
     private List<String> ventajas;
     private List<String> desventajas;
 }

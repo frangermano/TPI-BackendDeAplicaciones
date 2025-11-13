@@ -2,6 +2,7 @@ package back.tpi.ms_GestionDeOperaciones.dto;
 
 import back.tpi.ms_GestionDeOperaciones.domain.EstadoSolicitud;
 import com.fasterxml.jackson.annotation.JsonFormat;
+import com.fasterxml.jackson.annotation.JsonInclude;
 import lombok.*;
 
 import java.time.LocalDateTime;
@@ -13,6 +14,7 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
+@JsonInclude(JsonInclude.Include.NON_NULL)
 public class ContenedorPendienteDTO {
 
     // Información básica del contenedor

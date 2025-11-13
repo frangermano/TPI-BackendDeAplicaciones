@@ -1,12 +1,17 @@
 package back.tpi.ms_GestionDeOperaciones.dto;
 
 import back.tpi.ms_GestionDeOperaciones.domain.Cliente;
+import back.tpi.ms_GestionDeOperaciones.domain.EstadoSolicitud;
+import com.fasterxml.jackson.annotation.JsonInclude;
 import lombok.*;
+
+import java.time.LocalDateTime;
 
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
+@JsonInclude(JsonInclude.Include.NON_NULL)
 public class SolicitudTrasladoDTO {
 
     private Long id;
@@ -30,4 +35,9 @@ public class SolicitudTrasladoDTO {
     private Double coordDestinoLng;
 
     private RutaDTO ruta;
+
+    private EstadoSolicitud estado;
+    private Double costoEstimado;
+    private String tiempoEstimado;
+    private LocalDateTime fechaSolicitud;
 }

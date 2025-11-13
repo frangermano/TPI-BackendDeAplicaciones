@@ -4,9 +4,11 @@ import back.tpi.ms_GestionDeOperaciones.domain.EstadoSolicitud;
 import back.tpi.ms_GestionDeOperaciones.dto.*;
 import back.tpi.ms_GestionDeOperaciones.service.ContenedorPendienteService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 @RestController
@@ -29,13 +31,33 @@ public class ContenedorPendienteController {
     public ResponseEntity<List<ContenedorPendienteDTO>> consultarContenedoresPendientes(
             @RequestParam(required = false) String estado,
             @RequestParam(required = false) Long clienteId,
-            @RequestParam(required = false) Boolean soloAtrasados) {
+
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME)
+            LocalDateTime fechaSolicitudDesde,
+
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME)
+            LocalDateTime fechaSolicitudHasta,
+
+            @RequestParam(required = false) Double pesoMinimo,
+            @RequestParam(required = false) Double pesoMaximo,
+            @RequestParam(required = false) Double volumenMinimo,
+            @RequestParam(required = false) Double volumenMaximo,
+
+            @RequestParam(required = false) String ciudadOrigen,
+            @RequestParam(required = false) String ciudadDestino) {
 
         try {
             FiltrosContenedorDTO filtros = FiltrosContenedorDTO.builder()
                     .estado(estado != null ? EstadoSolicitud.valueOf(estado) : null)
                     .clienteId(clienteId)
-                    .soloAtrasados(soloAtrasados)
+                    .fechaSolicitudDesde(fechaSolicitudDesde)
+                    .fechaSolicitudHasta(fechaSolicitudHasta)
+                    .pesoMinimo(pesoMinimo)
+                    .pesoMaximo(pesoMaximo)
+                    .volumenMinimo(volumenMinimo)
+                    .volumenMaximo(volumenMaximo)
+                    .ciudadOrigen(ciudadOrigen)
+                    .ciudadDestino(ciudadDestino)
                     .build();
 
             List<ContenedorPendienteDTO> contenedores =

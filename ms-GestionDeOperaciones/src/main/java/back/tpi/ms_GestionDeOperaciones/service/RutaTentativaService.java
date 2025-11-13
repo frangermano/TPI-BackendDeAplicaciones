@@ -5,6 +5,7 @@ import back.tpi.ms_GestionDeOperaciones.client.OsrmClient;
 import back.tpi.ms_GestionDeOperaciones.client.TarifaClient;
 import back.tpi.ms_GestionDeOperaciones.domain.*;
 import back.tpi.ms_GestionDeOperaciones.dto.*;
+import back.tpi.ms_GestionDeOperaciones.mapper.RutaMapper;
 import back.tpi.ms_GestionDeOperaciones.repository.RutaRepository;
 import back.tpi.ms_GestionDeOperaciones.repository.SolicitudTrasladoRepository;
 import lombok.RequiredArgsConstructor;
@@ -27,6 +28,7 @@ public class RutaTentativaService {
     private final SolicitudTrasladoRepository solicitudRepository;
     private final TarifaClient tarifaClient;
     private final DepositoClient depositoClient;
+    private final RutaMapper rutaMapper;
 
     /**
      * Genera rutas tentativas dinámicamente con diferentes estrategias
@@ -103,6 +105,25 @@ public class RutaTentativaService {
         if (todosLosDepositos.isEmpty()) {
             return List.of();
         }
+        // 🔹 FILTRO NUEVO: eliminar depósitos demasiado cercanos al destino o al origen
+        double DISTANCIA_MINIMA_KM = 5.0;
+
+        todosLosDepositos = todosLosDepositos.stream()
+                .filter(d -> {
+                    double distanciaDestino = calcularDistanciaHaversine(
+                            d.getLatitud(), d.getLongitud(),
+                            solicitud.getCoordDestinoLat(), solicitud.getCoordDestinoLng()
+                    );
+                    double distanciaOrigen = calcularDistanciaHaversine(
+                            d.getLatitud(), d.getLongitud(),
+                            solicitud.getCoordOrigenLat(), solicitud.getCoordOrigenLng()
+                    );
+                    return distanciaDestino > DISTANCIA_MINIMA_KM && distanciaOrigen > DISTANCIA_MINIMA_KM;
+                })
+                .collect(Collectors.toList());
+
+        log.info("🧭 Se filtraron depósitos muy cercanos (< {} km) al origen o destino. Quedan {} depósitos válidos.",
+                DISTANCIA_MINIMA_KM, todosLosDepositos.size());
 
 
         // Calcular distancia de ruta directa
@@ -230,6 +251,11 @@ public class RutaTentativaService {
         List<DepositoDTO> depositosSeleccionados = depositosDisponibles.stream()
                 .limit(numeroDepositos)
                 .collect(Collectors.toList());
+
+        depositosSeleccionados.sort(Comparator.comparing(DepositoDTO::getDistanciaDesdeOrigen));
+
+        log.info("🗺️ Orden de depósitos seleccionados (por distancia al origen): {}",
+                depositosSeleccionados.stream().map(DepositoDTO::getDireccion).toList());
 
         List<TramoTentativoDTO> tramos = new ArrayList<>();
         double distanciaTotal = 0;
@@ -424,7 +450,7 @@ public class RutaTentativaService {
 
         log.info("✅ Ruta confirmada y asignada a solicitud ID: {}", solicitudId);
 
-        return convertirARutaDTO(rutaGuardada);
+        return rutaMapper.toDTO(rutaGuardada);
     }
 
     // ========== MÉTODOS AUXILIARES ==========
@@ -452,7 +478,7 @@ public class RutaTentativaService {
                 .destino(deposito.getDireccion())
                 .tipoTramo("DEPOSITO")
                 .distancia(0.0)
-                .tiempoEstimado("0:30 hs")
+                .tiempoEstimado("24:00 hs")
                 .costoEstimado(deposito.getCostoEstadia() != null ? deposito.getCostoEstadia() : 0.0)
                 .coordOrigenLat(deposito.getLatitud())
                 .coordOrigenLng(deposito.getLongitud())
@@ -490,35 +516,5 @@ public class RutaTentativaService {
         return String.format("%d:%02d hs", h, m);
     }
 
-    private RutaDTO convertirARutaDTO(Ruta ruta) {
-        return RutaDTO.builder()
-                .id(ruta.getId())
-                .solicitudTrasladoId(ruta.getSolicitudTraslado().getId())
-                .cantidadTramos(ruta.getCantidadTramos())
-                .cantidadDepositos(ruta.getCantidadDepositos())
-                .tramos(ruta.getTramos().stream()
-                        .map(this::convertirATramoDTO)
-                        .collect(Collectors.toList()))
-                .build();
-    }
 
-    private TramoDTO convertirATramoDTO(Tramo tramo) {
-        return TramoDTO.builder()
-                .id(tramo.getId())
-                .origen(tramo.getOrigen())
-                .destino(tramo.getDestino())
-                .tipoTramo(tramo.getTipoTramo())
-                .estado(tramo.getEstado())
-                .costoAproximado(tramo.getCostoAproximado())
-                .costoReal(tramo.getCostoReal())
-                .fechaHoraInicio(tramo.getFechaHoraInicio())
-                .fechaHoraFin(tramo.getFechaHoraFin())
-                .camionPatente(tramo.getCamionPatente())
-                .coordOrigenLat(tramo.getCoordOrigenLat())
-                .coordOrigenLng(tramo.getCoordOrigenLng())
-                .coordDestinoLat(tramo.getCoordDestinoLat())
-                .coordDestinoLng(tramo.getCoordDestinoLng())
-                .distancia(tramo.getDistancia())
-                .build();
-    }
 }

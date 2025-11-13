@@ -5,6 +5,7 @@ import back.tpi.ms_GestionDeOperaciones.client.OsrmClient;
 import back.tpi.ms_GestionDeOperaciones.client.TarifaClient;
 import back.tpi.ms_GestionDeOperaciones.domain.*;
 import back.tpi.ms_GestionDeOperaciones.dto.*;
+import back.tpi.ms_GestionDeOperaciones.mapper.TramoMapper;
 import back.tpi.ms_GestionDeOperaciones.repository.*;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -28,6 +29,7 @@ public class RegistroTramoService {
     private final CamionClient camionClient;
     private final OsrmClient osrmClient;
     private final TarifaClient tarifaClient;
+    private final TramoMapper tramoMapper;
 
     /**
      * Registra el INICIO de un tramo por el transportista
@@ -211,7 +213,7 @@ public class RegistroTramoService {
         Tramo tramo = tramoRepository.findById(tramoId)
                 .orElseThrow(() -> new RuntimeException("Tramo no encontrado con ID: " + tramoId));
 
-        return convertirATramoDTO(tramo);
+        return tramoMapper.toDTO(tramo);
     }
 
     // ========== MÉTODOS PRIVADOS ==========
@@ -236,11 +238,9 @@ public class RegistroTramoService {
                 TarifaDTO tarifaDTO = tarifaClient.getTarifa(tramo.getRuta().getSolicitudTraslado().getTarifaId());
 
                 double distancia = 0.0;
-
                 if (tramo.getCoordOrigenLat() != null && tramo.getCoordOrigenLng() != null &&
                         tramo.getCoordDestinoLat() != null && tramo.getCoordDestinoLng() != null) {
 
-                    // Usar OSRM para obtener la distancia real de la ruta
                     DistanciaResponse distanciaResponse = osrmClient.calcularDistancia(
                             tramo.getCoordOrigenLat(),
                             tramo.getCoordOrigenLng(),
@@ -248,37 +248,32 @@ public class RegistroTramoService {
                             tramo.getCoordDestinoLng()
                     );
                     distancia = distanciaResponse.getDistanciaKm();
-
                     log.info("📏 Distancia real calculada para tramo {}: {} km",
                             tramo.getId(), distancia);
                 } else {
                     log.warn("⚠️ Tramo {} sin coordenadas, usando distancia aproximada", tramo.getId());
-                    distancia = 50.0; // Distancia por defecto si no hay coordenadas
+                    distancia = 50.0; // valor por defecto
                 }
 
-                log.info("🧾 Calcular costo TRANSPORTE: tramoID={}, distancia={}, costoKm={}, valorCombustible={}",
-                        tramo.getId(),
-                        distancia,
-                        camion != null ? camion.getCostoKm() : null,
-                        tarifaDTO != null ? tarifaDTO.getValorCombustibleLitro() : null);
 
+                double consumoPorKm = camion.getCostoCombustible() / 100.0;
+                double costoCombustible = distancia * consumoPorKm * tarifaDTO.getValorCombustibleLitro();
 
                 double costoOperativo = distancia * camion.getCostoKm();
-                double consumoTotal = distancia * (camion.getCostoCombustible() / 100.0);
-                double costoCombustible = consumoTotal * tarifaDTO.getValorCombustibleLitro();
 
                 double costoReal = costoOperativo + costoCombustible;
 
-                log.info("✅ Costo real calculado tramo {} = {}", tramo.getId(), costoReal);
-                return costoReal;
+                log.info("✅ Costo real tramo {}: distancia={} km, consumoPorKm={}, costoCombustible={}, costoOperativo={}, total={}",
+                        tramo.getId(), distancia, consumoPorKm, costoCombustible, costoOperativo, costoReal);
+
+                return Math.round(costoReal * 100.0) / 100.0;
 
             case "DEPOSITO":
-                // Calcular cantidad de días de estadía
                 long diasEstadia = ChronoUnit.DAYS.between(
                         tramo.getFechaHoraInicio().toLocalDate(),
                         tramo.getFechaHoraFin().toLocalDate()
                 );
-                if (diasEstadia == 0) diasEstadia = 1; // mínimo un día
+                if (diasEstadia == 0) diasEstadia = 1;
                 double costoPorDia = tramo.getCostoAproximado() != null ? tramo.getCostoAproximado() : 0.0;
                 return costoPorDia * diasEstadia;
 
@@ -286,6 +281,7 @@ public class RegistroTramoService {
                 return 0.0;
         }
     }
+
 
     /**
      * Actualiza el estado de la solicitud cuando inicia el primer tramo
@@ -353,14 +349,6 @@ public class RegistroTramoService {
 
         boolean todosCompletados = tramosCompletados == todosLosTramos.size();
 
-        /*
-        Double duracionHoras = null;
-        if (tramo.getFechaHoraInicio() != null && tramo.getFechaHoraFin() != null) {
-            Duration duracion = Duration.between(tramo.getFechaHoraInicio(), tramo.getFechaHoraFin());
-            duracionHoras = duracion.toMinutes() / 60.0;
-        }
-
-         */
         String duracionLegible = "";
         if (tramo.getFechaHoraInicio() != null && tramo.getFechaHoraFin() != null) {
             Duration duracion = Duration.between(tramo.getFechaHoraInicio(), tramo.getFechaHoraFin());
@@ -388,25 +376,4 @@ public class RegistroTramoService {
                 .build();
     }
 
-    /**
-     * Convierte Tramo a DTO
-     */
-    private TramoDTO convertirATramoDTO(Tramo tramo) {
-        return TramoDTO.builder()
-                .id(tramo.getId())
-                .origen(tramo.getOrigen())
-                .destino(tramo.getDestino())
-                .tipoTramo(tramo.getTipoTramo())
-                .estado(tramo.getEstado())
-                .costoAproximado(tramo.getCostoAproximado())
-                .costoReal(tramo.getCostoReal())
-                .fechaHoraInicio(tramo.getFechaHoraInicio())
-                .fechaHoraFin(tramo.getFechaHoraFin())
-                .camionPatente(tramo.getCamionPatente())
-                .coordOrigenLat(tramo.getCoordOrigenLat())
-                .coordOrigenLng(tramo.getCoordOrigenLng())
-                .coordDestinoLat(tramo.getCoordDestinoLat())
-                .coordDestinoLng(tramo.getCoordDestinoLng())
-                .build();
-    }
 }

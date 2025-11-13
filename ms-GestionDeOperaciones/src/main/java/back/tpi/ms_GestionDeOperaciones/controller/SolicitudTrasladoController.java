@@ -33,9 +33,9 @@ public class SolicitudTrasladoController {
      */
     // REQUERIMIENTO 1
     @PostMapping("/completa")
-    public ResponseEntity<SolicitudTraslado> crearSolicitudCompleta(@RequestBody SolicitudTrasladoDTO solicitudDTO) {
+    public ResponseEntity<SolicitudTrasladoDTO> crearSolicitudCompleta(@RequestBody SolicitudTrasladoDTO solicitudDTO) {
         try {
-            SolicitudTraslado nuevaSolicitud = service.crearSolicitudCompleta(solicitudDTO);
+            SolicitudTrasladoDTO nuevaSolicitud = service.crearSolicitudCompleta(solicitudDTO);
             return ResponseEntity.status(HttpStatus.CREATED).body(nuevaSolicitud);
         } catch (RuntimeException e) {
             return ResponseEntity.badRequest().build();
@@ -109,18 +109,14 @@ public class SolicitudTrasladoController {
 
     @GetMapping
     public ResponseEntity<List<SolicitudTrasladoDTO>> obtenerTodas() {
-        List<SolicitudTraslado> solicitudes = service.obtenerTodas();
-        List<SolicitudTrasladoDTO> solicitudesDTO = solicitudes.stream()
-                .map(this::convertirADTO)
-                .toList();
-
-        return ResponseEntity.ok(solicitudesDTO);
+        List<SolicitudTrasladoDTO> solicitudes = service.obtenerTodas();
+        return ResponseEntity.ok(solicitudes);
     }
 
     @GetMapping("/{id}")
     public ResponseEntity<SolicitudTrasladoDTO> obtenerPorId(@PathVariable Long id) {
         try {
-            SolicitudTrasladoDTO  solicitud = convertirADTO(service.obtenerPorId(id));
+            SolicitudTrasladoDTO  solicitud = service.obtenerPorId(id);
             return ResponseEntity.ok(solicitud);
         } catch (RuntimeException e) {
             return ResponseEntity.notFound().build();
@@ -134,7 +130,7 @@ public class SolicitudTrasladoController {
     }
 
     @PatchMapping("/{id}/estado")
-    public ResponseEntity<SolicitudTraslado> actualizarEstado(
+    public ResponseEntity<SolicitudTrasladoDTO> actualizarEstado(
             @PathVariable Long id,
             @RequestParam EstadoSolicitud nuevoEstado) {
         try {
@@ -166,20 +162,4 @@ public class SolicitudTrasladoController {
         }
     }
 
-    public SolicitudTrasladoDTO convertirADTO(SolicitudTraslado  solicitudTraslado) {
-        return SolicitudTrasladoDTO.builder()
-                .id(solicitudTraslado.getId())
-                .cliente(clienteController.convertirADTO(solicitudTraslado.getCliente()))
-                .contenedor(contenedorController.convertirADTO(solicitudTraslado.getContenedor()))
-                .tarifa(tarifaClient.getTarifa(solicitudTraslado.getTarifaId()))
-                .direccionOrigen(solicitudTraslado.getDireccionOrigen())
-                .coordOrigenLat(solicitudTraslado.getCoordOrigenLat())
-                .coordOrigenLng(solicitudTraslado.getCoordOrigenLng())
-                .direccionDestino(solicitudTraslado.getDireccionDestino())
-                .coordDestinoLat(solicitudTraslado.getCoordDestinoLat())
-                .coordDestinoLng(solicitudTraslado.getCoordDestinoLng())
-                .ruta(rutaController.convertirADTO(solicitudTraslado.getRuta()))
-                .build();
-
-    }
 }

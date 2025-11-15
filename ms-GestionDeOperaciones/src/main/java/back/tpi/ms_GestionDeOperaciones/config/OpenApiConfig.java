@@ -20,14 +20,11 @@ import java.util.List;
 @Configuration
 public class OpenApiConfig {
 
-    @Value("${spring.security.oauth2.resourceserver.jwt.issuer-uri:http://localhost:8080/realms/tpi-backend}")
-    private String issuerUri;
-
     @Bean
     public OpenAPI customOpenAPI() {
         // URLs de Keycloak
-        String authUrl = issuerUri + "/protocol/openid-connect/auth";
-        String tokenUrl = issuerUri + "/protocol/openid-connect/token";
+        String publicAuthUrl = "http://localhost:8081/realms/tpi-backend/protocol/openid-connect/auth";
+        String publicTokenUrl = "http://localhost:8081/realms/tpi-backend/protocol/openid-connect/token";
 
         return new OpenAPI()
                 .info(new Info()
@@ -81,8 +78,8 @@ public class OpenApiConfig {
                                 .description("Autenticación OAuth2 mediante Keycloak")
                                 .flows(new OAuthFlows()
                                         .authorizationCode(new OAuthFlow()
-                                                .authorizationUrl(authUrl)
-                                                .tokenUrl(tokenUrl)
+                                                .authorizationUrl(publicAuthUrl)
+                                                .tokenUrl(publicTokenUrl)
                                                 .scopes(new Scopes()
                                                         .addString("openid", "OpenID Connect")
                                                         .addString("profile", "Información de perfil")

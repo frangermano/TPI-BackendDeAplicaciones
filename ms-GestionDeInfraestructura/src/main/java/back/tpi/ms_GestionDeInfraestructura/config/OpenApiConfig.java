@@ -16,25 +16,23 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 import java.util.List;
+import java.util.Map;
 
 @Configuration
 public class OpenApiConfig {
 
-    @Value("${spring.security.oauth2.resourceserver.jwt.issuer-uri:http://localhost:8080/realms/tpi-backend}")
-    private String issuerUri;
-
     @Bean
     public OpenAPI customOpenAPI() {
-        // URLs de Keycloak
-        String authUrl = issuerUri + "/protocol/openid-connect/auth";
-        String tokenUrl = issuerUri + "/protocol/openid-connect/token";
+        // URLs PUBLICAS de Keycloak para el navegador
+        String publicAuthUrl = "http://localhost:8081/realms/tpi-backend/protocol/openid-connect/auth";
+        String publicTokenUrl = "http://localhost:8081/realms/tpi-backend/protocol/openid-connect/token";
 
         return new OpenAPI()
                 .info(new Info()
-                        .title("API - Gestión de Infraestructura")
+                        .title("API - Gestion de Infraestructura")
                         .version("1.0.0")
                         .description("""
-                                ## Microservicio de Gestión de Infraestructura
+                                ## Microservicio de Gestion de Infraestructura
                                 
                                 Este microservicio gestiona:
                                 - Depositos
@@ -45,8 +43,8 @@ public class OpenApiConfig {
                                 - **TRANSPORTISTA**: Registrar inicio/fin de tramos
                                 - **ADMINISTRADOR**: Acceso completo al sistema
                                 
-                                ### Autenticación:
-                                Utiliza el botón **Authorize** para obtener un token JWT desde Keycloak.
+                                ### Autenticacion:
+                                Utiliza el boton **Authorize** para obtener un token JWT desde Keycloak.
                                 """)
                         .contact(new Contact()
                                 .name("Grupo 97 - Backend")
@@ -57,38 +55,32 @@ public class OpenApiConfig {
 
                 .servers(List.of(
                         new Server()
-                                .url("http://localhost:8082")
-                                .description("Servidor local de desarrollo"),
-                        new Server()
-                                .url("http://ms-gestiondeinfraestructura:8083")
-                                .description("Servidor Docker")
+                                .url("http://localhost:8080")
+                                .description("API Gateway - Desarrollo")
                 ))
 
                 .components(new Components()
-                        // ===== OPCIÓN 1: Bearer JWT (Manual) =====
                         .addSecuritySchemes("bearer-jwt", new SecurityScheme()
                                 .type(SecurityScheme.Type.HTTP)
                                 .scheme("bearer")
                                 .bearerFormat("JWT")
                                 .description("Ingresa el token JWT obtenido desde Keycloak (sin el prefijo 'Bearer')"))
 
-                        // ===== OPCIÓN 2: OAuth2 (Automático desde Keycloak) =====
                         .addSecuritySchemes("keycloak-oauth2", new SecurityScheme()
                                 .type(SecurityScheme.Type.OAUTH2)
-                                .description("Autenticación OAuth2 mediante Keycloak")
+                                .description("Autenticacion OAuth2 mediante Keycloak")
                                 .flows(new OAuthFlows()
                                         .authorizationCode(new OAuthFlow()
-                                                .authorizationUrl(authUrl)
-                                                .tokenUrl(tokenUrl)
+                                                .authorizationUrl(publicAuthUrl)  // URL PUBLICA
+                                                .tokenUrl(publicTokenUrl)          // URL PUBLICA
                                                 .scopes(new Scopes()
                                                         .addString("openid", "OpenID Connect")
-                                                        .addString("profile", "Información de perfil")
+                                                        .addString("profile", "Informacion de perfil")
                                                         .addString("email", "Email del usuario")
                                                 ))
                                 ))
                 )
 
-                // Aplicar seguridad a TODOS los endpoints por defecto
                 .addSecurityItem(new SecurityRequirement()
                         .addList("bearer-jwt")
                         .addList("keycloak-oauth2"));

@@ -45,12 +45,6 @@
 		</dependency>
 
 
-        <!-- OAuth2 Client -->
-        <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-oauth2-client</artifactId>
-        </dependency>
-
 
         <!-- OAuth2 Resource Server con JWT -->
         <dependency>
@@ -89,6 +83,11 @@
             <artifactId>spring-cloud-starter-gateway</artifactId>
         </dependency>
 
+        <!-- Necesario para que funcione OAuth2 Client + TokenRelay -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-oauth2-client</artifactId>
+        </dependency>
 
     </dependencies>
 

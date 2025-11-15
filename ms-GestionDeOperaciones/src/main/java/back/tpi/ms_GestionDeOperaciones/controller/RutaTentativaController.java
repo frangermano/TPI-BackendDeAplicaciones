@@ -60,7 +60,7 @@ public class RutaTentativaController {
             @ApiResponse(responseCode = "404", description = "Solicitud no encontrada")
     })
     @GetMapping("/solicitud/{solicitudId}")
-    @PreAuthorize("hasAnyRole('ADMINISTRADOR','CLIENTE')")
+    @PreAuthorize("hasRole('ADMINISTRADOR')")
     public ResponseEntity<List<RutaTentativaDTO>> consultarRutasTentativas(
             @Parameter(
                     description = "ID de la solicitud de traslado",

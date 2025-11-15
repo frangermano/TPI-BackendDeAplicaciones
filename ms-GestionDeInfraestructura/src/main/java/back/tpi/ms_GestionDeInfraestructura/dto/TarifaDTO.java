@@ -17,7 +17,7 @@ import java.util.Date;
 public class TarifaDTO {
 
     @Schema(description = "Identificador único de la tarifa", example = "101")
-    private Long id;
+    private Long tarifaId;
 
     @Schema(description = "Nombre o descripción de la tarifa", example = "Tarifa estándar nacional")
     private String nombre;

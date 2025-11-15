@@ -42,7 +42,7 @@ public class TramoMapper {
         }
 
         return TramoDTO.builder()
-                .id(tramo.getId())
+                .tramoId(tramo.getId())
                 .origen(tramo.getOrigen())
                 .destino(tramo.getDestino())
                 .tipoTramo(tramo.getTipoTramo())

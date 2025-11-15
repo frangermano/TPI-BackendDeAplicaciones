@@ -10,7 +10,7 @@ import org.springframework.stereotype.Component;
 public class ContenedorMapper {
     public ContenedorDTO toDTO(Contenedor contenedor) {
         return ContenedorDTO.builder()
-                .id(contenedor.getId())
+                .contenedorId(contenedor.getId())
                 .peso((contenedor.getPeso()))
                 .volumen(contenedor.getVolumen())
                 .build();

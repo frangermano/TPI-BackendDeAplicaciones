@@ -6,13 +6,19 @@ import back.tpi.ms_GestionDeOperaciones.domain.SolicitudTraslado;
 import back.tpi.ms_GestionDeOperaciones.dto.*;
 import back.tpi.ms_GestionDeOperaciones.service.CalculoCostoService;
 import back.tpi.ms_GestionDeOperaciones.service.SolicitudTrasladoService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
+
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
+@Tag(name = "Solicitudes de Traslado", description = "Operaciones relacionadas con solicitudes de traslado")
 @RestController
 @RequestMapping("/api/solicitudes-traslado")
 @RequiredArgsConstructor
@@ -20,19 +26,22 @@ public class SolicitudTrasladoController {
 
     private final SolicitudTrasladoService service;
     private final CalculoCostoService calculoCostoService;
-    private final ClienteController clienteController;
     private final TarifaClient tarifaClient;
+    private final ClienteController clienteController;
     private final ContenedorController contenedorController;
     private final RutaController rutaController;
 
-    /**
-     * Crea una solicitud COMPLETA:
-     * - Registra/verifica cliente si no existe
-     * - Crea contenedor con identificación única
-     * - Registra solicitud con estado PENDIENTE
-     */
-    // REQUERIMIENTO 1
+    // -------------------------------------------------------------------------
+    // REQUERIMIENTO 1 - Crear solicitud completa
+    // -------------------------------------------------------------------------
+    @Operation(
+            summary = "Crear una solicitud completa",
+            description = "Registra/verifica cliente, crea contenedor y genera una solicitud en estado PENDIENTE."
+    )
+    @ApiResponse(responseCode = "201", description = "Solicitud creada correctamente")
+    @ApiResponse(responseCode = "400", description = "Datos inválidos")
     @PostMapping("/completa")
+    @PreAuthorize("hasRole('CLIENTE')")
     public ResponseEntity<SolicitudTrasladoDTO> crearSolicitudCompleta(@RequestBody SolicitudTrasladoDTO solicitudDTO) {
         try {
             SolicitudTrasladoDTO nuevaSolicitud = service.crearSolicitudCompleta(solicitudDTO);
@@ -42,13 +51,17 @@ public class SolicitudTrasladoController {
         }
     }
 
-    // REQUERIMIENTO 2
-    /**
-     * Consultar el estado del transporte por ID de solicitud
-     * GET /api/solicitudes-traslado/estado/{solicitudId}
-     */
-
+    // -------------------------------------------------------------------------
+    // REQUERIMIENTO 2 - Estado por solicitud
+    // -------------------------------------------------------------------------
+    @Operation(
+            summary = "Consultar estado por ID de solicitud",
+            description = "Devuelve el estado actual del transporte asociado a una solicitud."
+    )
+    @ApiResponse(responseCode = "200", description = "Estado obtenido correctamente")
+    @ApiResponse(responseCode = "404", description = "Solicitud no encontrada")
     @GetMapping("/estado/solicitud/{solicitudId}")
+    @PreAuthorize("hasRole('CLIENTE')")
     public ResponseEntity<EstadoTransporteDTO> consultarEstadoPorSolicitud(@PathVariable Long solicitudId) {
         try {
             EstadoTransporteDTO estado = service.consultarEstadoPorSolicitud(solicitudId);
@@ -58,12 +71,17 @@ public class SolicitudTrasladoController {
         }
     }
 
-
-    /**
-     * Consultar el estado del transporte por ID de contenedor
-     * GET /api/solicitudes-traslado/estado/contenedor/{contenedorId}
-     */
+    // -------------------------------------------------------------------------
+    // REQUERIMIENTO 2 - Estado por contenedor
+    // -------------------------------------------------------------------------
+    @Operation(
+            summary = "Consultar estado por ID de contenedor",
+            description = "Devuelve el estado del transporte buscándolo por el contenedor."
+    )
+    @ApiResponse(responseCode = "200", description = "Estado obtenido")
+    @ApiResponse(responseCode = "404", description = "Contenedor no encontrado")
     @GetMapping("/estado/contenedor/{contenedorId}")
+    @PreAuthorize("hasRole('CLIENTE')")
     public ResponseEntity<EstadoTransporteDTO> consultarEstadoPorContenedor(@PathVariable Long contenedorId) {
         try {
             EstadoTransporteDTO estado = service.consultarEstadoPorContenedor(contenedorId);
@@ -73,63 +91,69 @@ public class SolicitudTrasladoController {
         }
     }
 
-
-    /**
-     * Calcula el costo total de una solicitud de traslado
-     *
-     * @param // id ID de la solicitud de traslado
-     * @return Detalle completo del cálculo de costos
-     */
+    // -------------------------------------------------------------------------
+    // Calcular costo real (ADMIN)
+    // -------------------------------------------------------------------------
+    @Operation(
+            summary = "Calcular costo real",
+            description = "Calcula el costo real total de la solicitud de traslado."
+    )
+    @ApiResponse(responseCode = "200", description = "Costo calculado correctamente")
     @PostMapping("/{id}/calcular-costo-real")
+    @PreAuthorize("hasRole('ADMINISTRADOR')")
     public ResponseEntity<CostoDetalleDTO> calcularCostoReal(@PathVariable Long id) {
-        CostoDetalleDTO costoDetalle = service.calcularCostoReal(id);
-        return ResponseEntity.ok(costoDetalle);
-    }
-    /*
-    @PostMapping("/{id}/calcular-costo")
-    public ResponseEntity<CostoDetalleDTO> calcularCosto(@PathVariable Long id) {
-        CostoDetalleDTO costoDetalle = calculoCostoService.calcularYActualizarCosto(id);
-        return ResponseEntity.ok(costoDetalle);
+        return ResponseEntity.ok(service.calcularCostoReal(id));
     }
 
-    /**
-     * Obtiene el detalle del costo sin recalcular (si ya fue calculado)
-     *
-     * @param id ID de la solicitud de traslado
-     * @return Detalle del costo
-     */
-    /*
-    @GetMapping("/{id}/detalle-costo")
-    public ResponseEntity<CostoDetalleDTO> obtenerDetalleCosto(@PathVariable Long id) {
-        CostoDetalleDTO costoDetalle = calculoCostoService.calcularYActualizarCosto(id);
-        return ResponseEntity.ok(costoDetalle);
-    }
-
-     */
-
+    // -------------------------------------------------------------------------
+    // Listar todas (ADMIN)
+    // -------------------------------------------------------------------------
+    @Operation(summary = "Obtener todas las solicitudes")
+    @ApiResponse(responseCode = "200", description = "Listado obtenido")
     @GetMapping
+    @PreAuthorize("hasRole('ADMINISTRADOR')")
     public ResponseEntity<List<SolicitudTrasladoDTO>> obtenerTodas() {
-        List<SolicitudTrasladoDTO> solicitudes = service.obtenerTodas();
-        return ResponseEntity.ok(solicitudes);
+        return ResponseEntity.ok(service.obtenerTodas());
     }
 
+    // -------------------------------------------------------------------------
+    // Obtener por ID (Admin + Cliente)
+    // -------------------------------------------------------------------------
+    @Operation(summary = "Obtener solicitud por ID")
+    @ApiResponse(responseCode = "200", description = "Solicitud encontrada")
+    @ApiResponse(responseCode = "404", description = "Solicitud no encontrada")
     @GetMapping("/{id}")
+    @PreAuthorize("hasAnyRole('ADMINISTRADOR','CLIENTE')")
     public ResponseEntity<SolicitudTrasladoDTO> obtenerPorId(@PathVariable Long id) {
         try {
-            SolicitudTrasladoDTO  solicitud = service.obtenerPorId(id);
-            return ResponseEntity.ok(solicitud);
+            return ResponseEntity.ok(service.obtenerPorId(id));
         } catch (RuntimeException e) {
             return ResponseEntity.notFound().build();
         }
     }
 
-
+    // -------------------------------------------------------------------------
+    // Obtener por Estado
+    // -------------------------------------------------------------------------
+    @Operation(summary = "Obtener solicitudes por estado")
+    @ApiResponse(responseCode = "200", description = "Listado encontrado")
     @GetMapping("/estado/{estado}")
+    @PreAuthorize("hasAnyRole('ADMINISTRADOR','CLIENTE')")
     public ResponseEntity<List<SolicitudTraslado>> obtenerPorEstado(@PathVariable EstadoSolicitud estado) {
         return ResponseEntity.ok(service.obtenerPorEstado(estado));
     }
 
+    // -------------------------------------------------------------------------
+    // Actualizar estado (ADMIN)
+    // -------------------------------------------------------------------------
+    @Operation(
+            summary = "Actualizar estado",
+            description = "Actualiza el estado de una solicitud de traslado."
+    )
+    @ApiResponse(responseCode = "200", description = "Estado actualizado")
+    @ApiResponse(responseCode = "404", description = "Solicitud no encontrada")
     @PatchMapping("/{id}/estado")
+    @PreAuthorize("hasRole('ADMINISTRADOR')")
     public ResponseEntity<SolicitudTrasladoDTO> actualizarEstado(
             @PathVariable Long id,
             @RequestParam EstadoSolicitud nuevoEstado) {
@@ -140,7 +164,18 @@ public class SolicitudTrasladoController {
         }
     }
 
+
+    // -------------------------------------------------------------------------
+    // Finalizar solicitud (ADMIN)
+    // -------------------------------------------------------------------------
+    @Operation(
+            summary = "Finalizar solicitud",
+            description = "Marca la solicitud como finalizada y registra el costo final."
+    )
+    @ApiResponse(responseCode = "200", description = "Solicitud finalizada correctamente")
+    @ApiResponse(responseCode = "404", description = "Solicitud no encontrada")
     @PatchMapping("/{id}/finalizar")
+    @PreAuthorize("hasRole('ADMINISTRADOR')")
     public ResponseEntity<SolicitudTraslado> finalizarSolicitud(
             @PathVariable Long id,
             @RequestParam Double costoFinal,
@@ -152,7 +187,17 @@ public class SolicitudTrasladoController {
         }
     }
 
+    // -------------------------------------------------------------------------
+    // Eliminar solicitud (ADMIN)
+    // -------------------------------------------------------------------------
+    @Operation(
+            summary = "Eliminar solicitud",
+            description = "Elimina una solicitud por ID."
+    )
+    @ApiResponse(responseCode = "204", description = "Solicitud eliminada")
+    @ApiResponse(responseCode = "404", description = "Solicitud no encontrada")
     @DeleteMapping("/{id}")
+    @PreAuthorize("hasRole('ADMINISTRADOR')")
     public ResponseEntity<Void> eliminarSolicitud(@PathVariable Long id) {
         try {
             service.eliminarSolicitud(id);
@@ -161,5 +206,4 @@ public class SolicitudTrasladoController {
             return ResponseEntity.notFound().build();
         }
     }
-
 }

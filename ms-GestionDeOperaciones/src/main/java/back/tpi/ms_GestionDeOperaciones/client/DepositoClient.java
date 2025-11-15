@@ -5,6 +5,9 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.ParameterizedTypeReference;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestClient;
 
@@ -29,10 +32,12 @@ public class DepositoClient {
         try {
             log.info("Consultando depósitos en ruta desde ({}, {}) hasta ({}, {})",
                     latOrigen, lngOrigen, latDestino, lngDestino);
+            String token = obtenerTokenActual();
 
             List<DepositoDTO> depositos = restClient.get()
                     .uri(infraestructuraServiceUrl + "/api/depositos/en-ruta?latOrigen={latO}&lngOrigen={lngO}&latDestino={latD}&lngDestino={lngD}&cantidad={cant}",
                             latOrigen, lngOrigen, latDestino, lngDestino, cantidad)
+                    .header("Authorization", "Bearer " + token)
                     .retrieve()
                     .body(new ParameterizedTypeReference<List<DepositoDTO>>() {});
 
@@ -52,9 +57,11 @@ public class DepositoClient {
     public List<DepositoDTO> obtenerDepositosActivos() {
         try {
             log.info("Consultando depósitos activos");
+            String token = obtenerTokenActual();
 
             List<DepositoDTO> depositos = restClient.get()
                     .uri(infraestructuraServiceUrl + "/api/depositos")
+                    .header("Authorization", "Bearer " + token)
                     .retrieve()
                     .body(new ParameterizedTypeReference<List<DepositoDTO>>() {});
 
@@ -74,6 +81,7 @@ public class DepositoClient {
         try {
             log.info("Consultando depósitos cercanos a ({}, {}) en radio de {} km",
                     lat, lng, radioKm);
+            String token = obtenerTokenActual();
 
             List<DepositoDTO> depositos = restClient.get()
                     .uri(uriBuilder -> uriBuilder
@@ -82,6 +90,7 @@ public class DepositoClient {
                             .queryParam("lng", lng)
                             .queryParam("radioKm", radioKm)
                             .build())
+                    .header("Authorization", "Bearer " + token)
                     .retrieve()
                     .body(new ParameterizedTypeReference<List<DepositoDTO>>() {});
 
@@ -100,9 +109,11 @@ public class DepositoClient {
     public DepositoDTO obtenerDepositoPorId(Long depositoId) {
         try {
             log.info("Consultando depósito con ID: {}", depositoId);
+            String token = obtenerTokenActual();
 
             DepositoDTO deposito = restClient.get()
                     .uri(infraestructuraServiceUrl + "/api/depositos/{id}", depositoId)
+                    .header("Authorization", "Bearer " + token)
                     .retrieve()
                     .body(DepositoDTO.class);
 
@@ -120,8 +131,11 @@ public class DepositoClient {
      */
     public boolean existeDeposito(Long depositoId) {
         try {
+            String token = obtenerTokenActual();
+
             Boolean existe = restClient.get()
                     .uri(infraestructuraServiceUrl + "/api/depositos/{id}/existe", depositoId)
+                    .header("Authorization", "Bearer " + token)
                     .retrieve()
                     .body(Boolean.class);
 
@@ -130,5 +144,20 @@ public class DepositoClient {
             log.error("❌ Error al verificar depósito: {}", e.getMessage());
             return false;
         }
+    }
+
+    /**
+     * Obtiene el token JWT del contexto de seguridad actual
+     */
+    private String obtenerTokenActual() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+
+        if (authentication != null && authentication.getPrincipal() instanceof Jwt jwt) {
+            log.debug("Token JWT obtenido del contexto de seguridad");
+            return jwt.getTokenValue();
+        }
+
+        log.error("No se pudo obtener el token JWT del contexto de seguridad");
+        throw new RuntimeException("Usuario no autenticado - No hay token disponible");
     }
 }

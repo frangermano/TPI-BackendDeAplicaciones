@@ -11,7 +11,7 @@ public class ClienteMapper {
 
     public ClienteDTO toDTO(Cliente cliente) {
         return ClienteDTO.builder()
-                .id(cliente.getId())
+                .clienteId(cliente.getId())
                 .nombre(cliente.getNombre())
                 .apellido(cliente.getApellido())
                 .email(cliente.getEmail())

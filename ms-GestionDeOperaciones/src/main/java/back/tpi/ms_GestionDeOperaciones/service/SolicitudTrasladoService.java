@@ -56,7 +56,7 @@ public class SolicitudTrasladoService {
 
         // d) CREAR TARIFA (REMOTO)
         TarifaDTO tarifaCreada = tarifaClient.crearTarifa(solicitudDTO.getTarifa());
-        log.info("Tarifa creada con ID: {} en ms-GestionDeCostosYTarifas", tarifaCreada.getId());
+        log.info("Tarifa creada con ID: {} en ms-GestionDeCostosYTarifas", tarifaCreada.getTarifaId());
 
 
         // CALCULAR DISTANCIA Y COSTOS
@@ -73,13 +73,13 @@ public class SolicitudTrasladoService {
 
 
         // El costo puede depender de distancia, peso y volumen
-        Double costoEstimado = tarifaClient.calcularCostoEstimado(tarifaCreada.getId(), distancia);
+        Double costoEstimado = tarifaClient.calcularCostoEstimado(tarifaCreada.getTarifaId(), distancia);
 
         // c) CREAR SOLICITUD DE TRASLADO CON ESTADO PENDIENTE
         SolicitudTraslado solicitud = SolicitudTraslado.builder()
                 .cliente(cliente)
                 .contenedor(contenedor)
-                .tarifaId(tarifaCreada.getId())
+                .tarifaId(tarifaCreada.getTarifaId())
                 .direccionOrigen(solicitudDTO.getDireccionOrigen())
                 .coordOrigenLat(solicitudDTO.getCoordOrigenLat())
                 .coordOrigenLng(solicitudDTO.getCoordOrigenLng())
@@ -89,6 +89,7 @@ public class SolicitudTrasladoService {
                 .estado(EstadoSolicitud.PENDIENTE) // c) Estado inicial
                 .costoEstimado(costoEstimado)
                 .tiempoEstimado(tiempoEstimadoLegible)
+                .distanciaLegible(distanciaLegible)
                 .fechaSolicitud(LocalDateTime.now())
                 .build();
 
@@ -297,7 +298,7 @@ public class SolicitudTrasladoService {
                 .pesoContenedor(peso)
                 .volumenContenedor(volumen)
                 .costoTotal(costoFinal)
-                .tarifaId(tarifaDTO.getId())
+                .tarifaId(tarifaDTO.getTarifaId())
                 .nombreTarifa(tarifaDTO.getNombre())
                 .build();
     }

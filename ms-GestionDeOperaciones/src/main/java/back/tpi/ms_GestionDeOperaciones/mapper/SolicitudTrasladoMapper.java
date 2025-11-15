@@ -18,7 +18,7 @@ public class SolicitudTrasladoMapper {
 
     public SolicitudTrasladoDTO toDTO(SolicitudTraslado solicitudTraslado) {
         return SolicitudTrasladoDTO.builder()
-                .id(solicitudTraslado.getId())
+                .solicitudId(solicitudTraslado.getId())
                 .cliente(clienteMapper.toDTO(solicitudTraslado.getCliente()))
                 .contenedor(contenedorMapper.toDTO(solicitudTraslado.getContenedor()))
                 .tarifa(tarifaClient.getTarifa(solicitudTraslado.getTarifaId()))
@@ -28,6 +28,7 @@ public class SolicitudTrasladoMapper {
                 .direccionDestino(solicitudTraslado.getDireccionDestino())
                 .coordDestinoLat(solicitudTraslado.getCoordDestinoLat())
                 .coordDestinoLng(solicitudTraslado.getCoordDestinoLng())
+                .distanciaLegible(solicitudTraslado.getDistanciaLegible())
                 .estado(solicitudTraslado.getEstado())
                 .costoEstimado(solicitudTraslado.getCostoEstimado())
                 .tiempoEstimado(solicitudTraslado.getTiempoEstimado())
@@ -43,7 +44,7 @@ public class SolicitudTrasladoMapper {
 
     public SolicitudTrasladoDTO toDTOSolictudCreada(SolicitudTraslado solicitudTraslado, TarifaDTO tarifaDTO){
         return SolicitudTrasladoDTO.builder()
-                .id(solicitudTraslado.getId())
+                .solicitudId(solicitudTraslado.getId())
                 .cliente(clienteMapper.toDTO(solicitudTraslado.getCliente()))
                 .contenedor(contenedorMapper.toDTO(solicitudTraslado.getContenedor()))
                 .tarifa(tarifaDTO)
@@ -53,6 +54,7 @@ public class SolicitudTrasladoMapper {
                 .direccionDestino(solicitudTraslado.getDireccionDestino())
                 .coordDestinoLat(solicitudTraslado.getCoordDestinoLat())
                 .coordDestinoLng(solicitudTraslado.getCoordDestinoLng())
+                .distanciaLegible(solicitudTraslado.getDistanciaLegible())
                 .estado(solicitudTraslado.getEstado())
                 .costoEstimado(solicitudTraslado.getCostoEstimado())
                 .tiempoEstimado(solicitudTraslado.getTiempoEstimado())

@@ -20,7 +20,7 @@ public class RutaMapper {
         }
 
         return RutaDTO.builder()
-                .id(ruta.getId())
+                .rutaId(ruta.getId())
                 .solicitudTrasladoId(ruta.getSolicitudTraslado() != null ? ruta.getSolicitudTraslado().getId() : null)
                 .cantidadTramos(ruta.getCantidadTramos())
                 .cantidadDepositos(ruta.getCantidadDepositos())

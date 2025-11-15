@@ -43,6 +43,8 @@ public class SolicitudTraslado {
     Double coordDestinoLat;
     Double coordDestinoLng;
 
+    String distanciaLegible;
+
     @Column(nullable = false, length = 50)
     @Enumerated(EnumType.STRING)
     EstadoSolicitud estado;

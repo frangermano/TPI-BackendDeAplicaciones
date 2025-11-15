@@ -23,7 +23,7 @@ public class ContenedorPendienteService {
     private final TramoRepository tramoRepository;
 
     /**
-     * Consulta contenedores pendientes con filtros simples
+     * Consulta contenedores pendientes con filtros
      */
     @Transactional(readOnly = true)
     public List<ContenedorPendienteDTO> consultarContenedoresPendientes(
@@ -48,24 +48,6 @@ public class ContenedorPendienteService {
                 .collect(Collectors.toList());
     }
 
-    /**
-     * Obtiene ubicación de un contenedor específico
-     */
-    @Transactional(readOnly = true)
-    public ContenedorPendienteDTO obtenerUbicacionContenedor(Long contenedorId) {
-        log.info("Consultando ubicación del contenedor ID: {}", contenedorId);
-
-        List<SolicitudTraslado> solicitudes = solicitudRepository.findByContenedorId(contenedorId);
-
-        SolicitudTraslado solicitudActiva = solicitudes.stream()
-                .filter(s -> s.getEstado() != EstadoSolicitud.COMPLETADA &&
-                        s.getEstado() != EstadoSolicitud.CANCELADA)
-                .max(Comparator.comparing(SolicitudTraslado::getFechaSolicitud))
-                .orElseThrow(() -> new RuntimeException(
-                        "No se encontró solicitud activa para el contenedor ID: " + contenedorId));
-
-        return convertirADTO(solicitudActiva);
-    }
 
     // ========== MÉTODOS PRIVADOS ==========
 

@@ -163,4 +163,60 @@ public class DepositoController {
             return ResponseEntity.badRequest().build();
         }
     }
+
+    // -------------------------------------------------------------------------
+    @Operation(
+            summary = "Actualizar un depósito existente",
+            description = "Actualiza los datos de un depósito especificado por ID."
+    )
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Depósito actualizado correctamente"),
+            @ApiResponse(responseCode = "404", description = "Depósito no encontrado"),
+            @ApiResponse(responseCode = "400", description = "Error en los datos enviados")
+    })
+    @PutMapping("/{id}")
+    @PreAuthorize("hasRole('ADMINISTRADOR')")
+    public ResponseEntity<DepositoDTO> actualizarDeposito(
+            @Parameter(description = "ID del depósito a actualizar")
+            @PathVariable Long id,
+            @Parameter(description = "Nuevos datos del depósito")
+            @RequestBody DepositoDTO depositoDTO) {
+        try {
+            DepositoDTO depositoActualizado = depositoService.actualizar(id, depositoDTO);
+            return ResponseEntity.ok(depositoActualizado);
+        } catch (RuntimeException e) {
+            log.error("Error al actualizar depósito: {}", e.getMessage());
+            return ResponseEntity.notFound().build();
+        } catch (Exception e) {
+            log.error("Error al actualizar depósito: {}", e.getMessage());
+            return ResponseEntity.badRequest().build();
+        }
+    }
+
+    // -------------------------------------------------------------------------
+    @Operation(
+            summary = "Eliminar un depósito",
+            description = "Elimina un depósito del sistema especificado por ID."
+    )
+    @ApiResponses({
+            @ApiResponse(responseCode = "204", description = "Depósito eliminado correctamente"),
+            @ApiResponse(responseCode = "404", description = "Depósito no encontrado"),
+            @ApiResponse(responseCode = "500", description = "Error interno del servidor")
+    })
+    @DeleteMapping("/{id}")
+    @PreAuthorize("hasRole('ADMINISTRADOR')")
+    public ResponseEntity<Void> eliminarDeposito(
+            @Parameter(description = "ID del depósito a eliminar")
+            @PathVariable Long id) {
+        try {
+            depositoService.eliminar(id);
+            return ResponseEntity.noContent().build();
+        } catch (RuntimeException e) {
+            log.error("Error al eliminar depósito: {}", e.getMessage());
+            return ResponseEntity.notFound().build();
+        } catch (Exception e) {
+            log.error("Error al eliminar depósito: {}", e.getMessage());
+            return ResponseEntity.internalServerError().build();
+        }
+    }
 }

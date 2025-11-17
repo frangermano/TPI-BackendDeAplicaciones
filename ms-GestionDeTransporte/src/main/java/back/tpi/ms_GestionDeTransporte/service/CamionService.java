@@ -5,8 +5,6 @@ import back.tpi.ms_GestionDeTransporte.domain.TipoCamion;
 import back.tpi.ms_GestionDeTransporte.domain.Transportista;
 import back.tpi.ms_GestionDeTransporte.dto.CamionRequestDTO;
 import back.tpi.ms_GestionDeTransporte.dto.CamionResponseDTO;
-import back.tpi.ms_GestionDeTransporte.exception.DuplicateResourceException;
-import back.tpi.ms_GestionDeTransporte.exception.ResourceNotFoundException;
 import back.tpi.ms_GestionDeTransporte.mapper.CamionMapper;
 import back.tpi.ms_GestionDeTransporte.repository.CamionRepository;
 import back.tpi.ms_GestionDeTransporte.repository.TipoCamionRepository;
@@ -33,18 +31,18 @@ public class CamionService {
     public CamionResponseDTO registrarCamion(CamionRequestDTO requestDTO) {
         // Validar que la patente no exista
         if (camionRepository.existsById(requestDTO.getPatente())) {
-            throw new DuplicateResourceException("Ya existe un camión con la patente: " + requestDTO.getPatente());
+            throw new IllegalArgumentException("Ya existe un camion con la patente: " + requestDTO.getPatente());
         }
 
         // Validar que el transportista exista
         Transportista transportista = transportistaRepository.findById(requestDTO.getIdTransportista())
-                .orElseThrow(() -> new ResourceNotFoundException(
+                .orElseThrow(() -> new IllegalArgumentException(
                         "Transportista no encontrado con ID: " + requestDTO.getIdTransportista()));
 
-        // Validar que el tipo de camión exista
+        // Validar que el tipo de camion exista
         TipoCamion tipoCamion = tipoCamionRepository.findById(requestDTO.getIdTipoCamion())
-                .orElseThrow(() -> new ResourceNotFoundException(
-                        "Tipo de camión no encontrado con ID: " + requestDTO.getIdTipoCamion()));
+                .orElseThrow(() -> new IllegalArgumentException(
+                        "Tipo de camion no encontrado con ID: " + requestDTO.getIdTipoCamion()));
 
         Camion camion = Camion.builder()
                 .patente(requestDTO.getPatente().toUpperCase())
@@ -68,7 +66,7 @@ public class CamionService {
         Camion camion = camionRepository.findByPatenteWithDetails(patente.toUpperCase());
 
         if (camion == null) {
-            throw new ResourceNotFoundException("Camión no encontrado con patente: " + patente);
+            throw new IllegalArgumentException("Camion no encontrado con patente: " + patente);
         }
 
         return camionMapper.toResponseDTO(camion);
@@ -95,41 +93,38 @@ public class CamionService {
                 .collect(Collectors.toList());
     }
 
-    /**
-     * Actualiza la disponibilidad de un camión
-     */
     @Transactional
     public void actualizarDisponibilidad(String patente, Boolean disponible) {
-        log.info("Actualizando disponibilidad del camión {} a: {}", patente, disponible);
+        log.info("Actualizando disponibilidad del camion {} a: {}", patente, disponible);
 
         Camion camion = camionRepository.findById(patente.toUpperCase())
-                .orElseThrow(() -> new ResourceNotFoundException(
-                        "Camión no encontrado con patente: " + patente));
+                .orElseThrow(() -> new IllegalArgumentException(
+                        "Camion no encontrado con patente: " + patente));
 
         camion.setDisponible(disponible);
         camionRepository.save(camion);
 
-        log.info("✅ Disponibilidad del camión {} actualizada a: {}", patente, disponible);
+        log.info("Disponibilidad del camion {} actualizada a: {}", patente, disponible);
     }
 
     @Transactional
     public CamionResponseDTO actualizarCamion(String patente, CamionRequestDTO requestDTO) {
         Camion camion = camionRepository.findById(patente.toUpperCase())
-                .orElseThrow(() -> new ResourceNotFoundException("Camión no encontrado con patente: " + patente));
+                .orElseThrow(() -> new IllegalArgumentException("Camion no encontrado con patente: " + patente));
 
-        // Validar transportista si cambió
+        // Validar transportista si cambio
         if (!camion.getTransportista().getId().equals(requestDTO.getIdTransportista())) {
             Transportista transportista = transportistaRepository.findById(requestDTO.getIdTransportista())
-                    .orElseThrow(() -> new ResourceNotFoundException(
+                    .orElseThrow(() -> new IllegalArgumentException(
                             "Transportista no encontrado con ID: " + requestDTO.getIdTransportista()));
             camion.setTransportista(transportista);
         }
 
-        // Validar tipo de camión si cambió
+        // Validar tipo de camion si cambio
         if (!camion.getTipoCamion().getId().equals(requestDTO.getIdTipoCamion())) {
             TipoCamion tipoCamion = tipoCamionRepository.findById(requestDTO.getIdTipoCamion())
-                    .orElseThrow(() -> new ResourceNotFoundException(
-                            "Tipo de camión no encontrado con ID: " + requestDTO.getIdTipoCamion()));
+                    .orElseThrow(() -> new IllegalArgumentException(
+                            "Tipo de camion no encontrado con ID: " + requestDTO.getIdTipoCamion()));
             camion.setTipoCamion(tipoCamion);
         }
 
@@ -146,7 +141,7 @@ public class CamionService {
     @Transactional
     public void eliminarCamion(String patente) {
         if (!camionRepository.existsById(patente.toUpperCase())) {
-            throw new ResourceNotFoundException("Camión no encontrado con patente: " + patente);
+            throw new IllegalArgumentException("Camion no encontrado con patente: " + patente);
         }
         camionRepository.deleteById(patente.toUpperCase());
     }

@@ -3,8 +3,6 @@ package back.tpi.ms_GestionDeTransporte.service;
 import back.tpi.ms_GestionDeTransporte.domain.Transportista;
 import back.tpi.ms_GestionDeTransporte.dto.TransportistaRequestDTO;
 import back.tpi.ms_GestionDeTransporte.dto.TransportistaResponseDTO;
-import back.tpi.ms_GestionDeTransporte.exception.DuplicateResourceException;
-import back.tpi.ms_GestionDeTransporte.exception.ResourceNotFoundException;
 import back.tpi.ms_GestionDeTransporte.mapper.TransportistaMapper;
 import back.tpi.ms_GestionDeTransporte.repository.TransportistaRepository;
 import lombok.RequiredArgsConstructor;
@@ -25,7 +23,7 @@ public class TransportistaService {
     public TransportistaResponseDTO registrarTransportista(TransportistaRequestDTO requestDTO) {
         // Validar que el email no exista
         if (transportistaRepository.existsByEmail(requestDTO.getEmail())) {
-            throw new DuplicateResourceException("Ya existe un transportista con el email: " + requestDTO.getEmail());
+            throw new IllegalArgumentException("Ya existe un transportista con el email: " + requestDTO.getEmail());
         }
 
         Transportista transportista = transportistaMapper.toEntity(requestDTO);
@@ -37,7 +35,7 @@ public class TransportistaService {
     @Transactional(readOnly = true)
     public TransportistaResponseDTO obtenerTransportistaPorId(Long id) {
         Transportista transportista = transportistaRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Transportista no encontrado con ID: " + id));
+                .orElseThrow(() -> new IllegalArgumentException("Transportista no encontrado con ID: " + id));
 
         return transportistaMapper.toResponseDTO(transportista);
     }
@@ -59,12 +57,12 @@ public class TransportistaService {
     @Transactional
     public TransportistaResponseDTO actualizarTransportista(Long id, TransportistaRequestDTO requestDTO) {
         Transportista transportista = transportistaRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Transportista no encontrado con ID: " + id));
+                .orElseThrow(() -> new IllegalArgumentException("Transportista no encontrado con ID: " + id));
 
-        // Validar email si cambió
+        // Validar email si cambio
         if (!transportista.getEmail().equals(requestDTO.getEmail())
                 && transportistaRepository.existsByEmail(requestDTO.getEmail())) {
-            throw new DuplicateResourceException("Ya existe un transportista con el email: " + requestDTO.getEmail());
+            throw new IllegalArgumentException("Ya existe un transportista con el email: " + requestDTO.getEmail());
         }
 
         transportista.setNombre(requestDTO.getNombre());
@@ -79,7 +77,7 @@ public class TransportistaService {
     @Transactional
     public void eliminarTransportista(Long id) {
         if (!transportistaRepository.existsById(id)) {
-            throw new ResourceNotFoundException("Transportista no encontrado con ID: " + id);
+            throw new IllegalArgumentException("Transportista no encontrado con ID: " + id);
         }
         transportistaRepository.deleteById(id);
     }

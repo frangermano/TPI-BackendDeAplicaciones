@@ -80,6 +80,34 @@ public class DepositoService {
         return convertirADTO(depositoGuardado);
     }
 
+    @Transactional
+    public DepositoDTO actualizar(Long id, DepositoDTO depositoDTO) {
+        Deposito deposito = depositoRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Depósito no encontrado con ID: " + id));
+
+        // Actualizar los campos del depósito
+        deposito.setNombre(depositoDTO.getNombre());
+        deposito.setDireccion(depositoDTO.getDireccion());
+        deposito.setLatitud(depositoDTO.getLatitud());
+        deposito.setLongitud(depositoDTO.getLongitud());
+        deposito.setCostoEstadia(depositoDTO.getCostoEstadia());
+
+        Deposito depositoActualizado = depositoRepository.save(deposito);
+        log.info("Depósito actualizado con ID: {}", id);
+
+        return convertirADTO(depositoActualizado);
+    }
+
+    @Transactional
+    public void eliminar(Long id) {
+        if (!depositoRepository.existsById(id)) {
+            throw new RuntimeException("Depósito no encontrado con ID: " + id);
+        }
+
+        depositoRepository.deleteById(id);
+        log.info("Depósito eliminado con ID: {}", id);
+    }
+
     private DepositoDTO convertirADTO(Deposito deposito) {
         return DepositoDTO.builder()
                 .id(deposito.getId())
